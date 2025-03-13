@@ -1,7 +1,7 @@
 # Real-World Exploration with TurtleBot3 Waffle
 ACS 6121
-Group 8
-University of Sheffield
+\nGroup 8
+\nUniversity of Sheffield
 
 This repository contains the ROS2 package for the **Real-World Exploration** task in the ACS6121 Mobile Robotics and Autonomous Systems module. The goal is to program a TurtleBot3 Waffle robot to autonomously explore a 4x4 meter arena containing obstacles while avoiding collisions.
 
