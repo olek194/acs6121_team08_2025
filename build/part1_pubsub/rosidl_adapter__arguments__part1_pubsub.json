@@ -1,0 +1,6 @@
+{
+  "package_name": "part1_pubsub",
+  "non_idl_tuples": [
+    "/home/student/ros2_ws/src/part1_pubsub:msg/Example.msg"
+  ]
+}

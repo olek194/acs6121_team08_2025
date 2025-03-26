@@ -1,0 +1,1 @@
+/home/student/ros2_ws/build/tuos_interfaces/rosidl_generator_c/tuos_interfaces/msg/detail/num__type_support.h

@@ -1,0 +1,1 @@
+/home/student/ros2_ws/build/tuos_examples/ament_cmake_environment_hooks/pythonpath.sh

@@ -1,0 +1,10 @@
+/home/student/ros2_ws/build/tuos_tb3_tools/CMakeFiles/uninstall.dir
+/home/student/ros2_ws/build/tuos_tb3_tools/CMakeFiles/tuos_tb3_tools_uninstall.dir
+/home/student/ros2_ws/build/tuos_tb3_tools/CMakeFiles/cpp_executable.dir
+/home/student/ros2_ws/build/tuos_tb3_tools/CMakeFiles/test.dir
+/home/student/ros2_ws/build/tuos_tb3_tools/CMakeFiles/edit_cache.dir
+/home/student/ros2_ws/build/tuos_tb3_tools/CMakeFiles/rebuild_cache.dir
+/home/student/ros2_ws/build/tuos_tb3_tools/CMakeFiles/list_install_components.dir
+/home/student/ros2_ws/build/tuos_tb3_tools/CMakeFiles/install.dir
+/home/student/ros2_ws/build/tuos_tb3_tools/CMakeFiles/install/local.dir
+/home/student/ros2_ws/build/tuos_tb3_tools/CMakeFiles/install/strip.dir

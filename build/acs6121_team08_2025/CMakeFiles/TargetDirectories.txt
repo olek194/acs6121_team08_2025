@@ -1,0 +1,11 @@
+/home/student/ros2_ws/build/acs6121_team08_2025/CMakeFiles/uninstall.dir
+/home/student/ros2_ws/build/acs6121_team08_2025/CMakeFiles/acs6121_team08_2025_uninstall.dir
+/home/student/ros2_ws/build/acs6121_team08_2025/CMakeFiles/ament_cmake_python_symlink_acs6121_team08_2025_modules.dir
+/home/student/ros2_ws/build/acs6121_team08_2025/CMakeFiles/ament_cmake_python_build_acs6121_team08_2025_modules_egg.dir
+/home/student/ros2_ws/build/acs6121_team08_2025/CMakeFiles/test.dir
+/home/student/ros2_ws/build/acs6121_team08_2025/CMakeFiles/edit_cache.dir
+/home/student/ros2_ws/build/acs6121_team08_2025/CMakeFiles/rebuild_cache.dir
+/home/student/ros2_ws/build/acs6121_team08_2025/CMakeFiles/list_install_components.dir
+/home/student/ros2_ws/build/acs6121_team08_2025/CMakeFiles/install.dir
+/home/student/ros2_ws/build/acs6121_team08_2025/CMakeFiles/install/local.dir
+/home/student/ros2_ws/build/acs6121_team08_2025/CMakeFiles/install/strip.dir

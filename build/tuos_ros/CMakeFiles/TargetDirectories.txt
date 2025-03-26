@@ -1,0 +1,9 @@
+/home/student/ros2_ws/build/tuos_ros/CMakeFiles/uninstall.dir
+/home/student/ros2_ws/build/tuos_ros/CMakeFiles/tuos_ros_uninstall.dir
+/home/student/ros2_ws/build/tuos_ros/CMakeFiles/test.dir
+/home/student/ros2_ws/build/tuos_ros/CMakeFiles/edit_cache.dir
+/home/student/ros2_ws/build/tuos_ros/CMakeFiles/rebuild_cache.dir
+/home/student/ros2_ws/build/tuos_ros/CMakeFiles/list_install_components.dir
+/home/student/ros2_ws/build/tuos_ros/CMakeFiles/install.dir
+/home/student/ros2_ws/build/tuos_ros/CMakeFiles/install/local.dir
+/home/student/ros2_ws/build/tuos_ros/CMakeFiles/install/strip.dir

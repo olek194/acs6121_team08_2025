@@ -1,0 +1,1 @@
+/home/student/ros2_ws/build/acs6121_team08_2025/ament_cmake_core/acs6121_team08_2025Config.cmake

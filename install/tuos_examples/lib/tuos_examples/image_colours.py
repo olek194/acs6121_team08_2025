@@ -1,0 +1,1 @@
+/home/student/ros2_ws/src/tuos_ros/tuos_examples/scripts/image_colours.py

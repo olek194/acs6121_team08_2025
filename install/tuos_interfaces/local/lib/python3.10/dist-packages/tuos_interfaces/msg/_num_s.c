@@ -1,0 +1,1 @@
+/home/student/ros2_ws/build/tuos_interfaces/rosidl_generator_py/tuos_interfaces/msg/_num_s.c

@@ -1,0 +1,12 @@
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/uninstall.dir
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/part3_beyond_basics_uninstall.dir
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/cpp_executable.dir
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/ament_cmake_python_symlink_part3_beyond_basics_modules.dir
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/ament_cmake_python_build_part3_beyond_basics_modules_egg.dir
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/test.dir
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/edit_cache.dir
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/rebuild_cache.dir
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/list_install_components.dir
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/install.dir
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/install/local.dir
+/home/student/ros2_ws/build/part3_beyond_basics/CMakeFiles/install/strip.dir

@@ -1,0 +1,88 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-bf7e25aa92cb1438b3d5.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "acs6121_team08_2025",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "acs6121_team08_2025_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-acs6121_team08_2025_uninstall-b75aef275a106fc242ae.json",
+					"name" : "acs6121_team08_2025_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_build_acs6121_team08_2025_modules_egg::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_build_acs6121_team08_2025_modules_egg-7663714fd2f98f7534a2.json",
+					"name" : "ament_cmake_python_build_acs6121_team08_2025_modules_egg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_symlink_acs6121_team08_2025_modules::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_symlink_acs6121_team08_2025_modules-66545fbc723019bb72d6.json",
+					"name" : "ament_cmake_python_symlink_acs6121_team08_2025_modules",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-b8ae2c796ad687885324.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/student/ros2_ws/build/acs6121_team08_2025",
+		"source" : "/home/student/ros2_ws/src/acs6121_team08_2025"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

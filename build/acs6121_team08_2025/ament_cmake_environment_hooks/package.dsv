@@ -1,0 +1,4 @@
+source;share/acs6121_team08_2025/local_setup.bash
+source;share/acs6121_team08_2025/local_setup.dsv
+source;share/acs6121_team08_2025/local_setup.sh
+source;share/acs6121_team08_2025/local_setup.zsh

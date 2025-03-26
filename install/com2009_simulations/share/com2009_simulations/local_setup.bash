@@ -1,0 +1,1 @@
+/home/student/ros2_ws/build/com2009_simulations/ament_cmake_environment_hooks/local_setup.bash

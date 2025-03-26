@@ -1,0 +1,1 @@
+/home/student/ros2_ws/build/tuos_examples/ament_cmake_python/tuos_examples/tuos_examples.egg-info/dependency_links.txt

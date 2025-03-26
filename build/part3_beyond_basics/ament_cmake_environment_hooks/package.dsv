@@ -1,0 +1,4 @@
+source;share/part3_beyond_basics/local_setup.bash
+source;share/part3_beyond_basics/local_setup.dsv
+source;share/part3_beyond_basics/local_setup.sh
+source;share/part3_beyond_basics/local_setup.zsh

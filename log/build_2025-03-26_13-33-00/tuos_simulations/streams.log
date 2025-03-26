@@ -1,0 +1,119 @@
+[0.107s] Invoking command in '/home/student/ros2_ws/build/tuos_simulations': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/student/ros2_ws/src/tuos_ros/tuos_simulations -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/student/ros2_ws/install/tuos_simulations
+[0.474s] -- The C compiler identification is GNU 11.4.0
+[1.136s] -- The CXX compiler identification is GNU 11.4.0
+[1.554s] -- Detecting C compiler ABI info
+[1.850s] -- Detecting C compiler ABI info - done
+[1.864s] -- Check for working C compiler: /usr/bin/cc - skipped
+[1.864s] -- Detecting C compile features
+[1.865s] -- Detecting C compile features - done
+[1.871s] -- Detecting CXX compiler ABI info
+[2.224s] -- Detecting CXX compiler ABI info - done
+[2.234s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[2.240s] -- Detecting CXX compile features
+[2.241s] -- Detecting CXX compile features - done
+[2.247s] -- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)
+[2.696s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[2.824s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[2.866s] -- Found gazebo_ros_pkgs: 3.7.0 (/opt/ros/humble/share/gazebo_ros_pkgs/cmake)
+[2.873s] -- Found turtlebot3_gazebo: 2.2.5 (/opt/ros/humble/share/turtlebot3_gazebo/cmake)
+[3.194s] -- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[3.194s] -- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[3.200s] -- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[3.245s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[3.296s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[3.611s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[3.615s] -- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[4.731s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[6.518s] -- Found FastRTPS: /opt/ros/humble/include  
+[9.549s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[9.565s] -- Looking for pthread.h
+[9.834s] -- Looking for pthread.h - found
+[9.834s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[10.216s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[10.216s] -- Found Threads: TRUE  
+[10.640s] -- Configuring done
+[10.652s] -- Generating done
+[10.663s] -- Build files have been written to: /home/student/ros2_ws/build/tuos_simulations
+[10.739s] Invoked command in '/home/student/ros2_ws/build/tuos_simulations' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/student/ros2_ws/src/tuos_ros/tuos_simulations -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/student/ros2_ws/install/tuos_simulations
+[10.739s] Invoking command in '/home/student/ros2_ws/build/tuos_simulations': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/tuos_simulations -- -j12 -l12
+[10.815s] Invoked command in '/home/student/ros2_ws/build/tuos_simulations' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/tuos_simulations -- -j12 -l12
+[10.836s] Invoking command in '/home/student/ros2_ws/build/tuos_simulations': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/tuos_simulations
+[10.853s] -- Install configuration: ""
+[10.853s] -- Execute custom install script
+[10.854s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/acs6121.launch.py
+[10.874s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/beacon_colours.launch.py
+[10.890s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/beaconing.launch.py
+[10.924s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/cartographer.launch.py
+[10.956s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/coloured_pillars.launch.py
+[10.994s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/line_following.launch.py
+[11.060s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/line_following_setup.launch.py
+[11.071s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/mystery_world.launch.py
+[11.083s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/nav_world.launch.py
+[11.103s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/rviz.launch.py
+[11.133s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/spawn_tb3.launch.py
+[11.176s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/launch/waffle.launch.py
+[11.212s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/acs6121/materials/scripts/floor.material
+[11.229s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/acs6121/materials/textures/acs6121_floor.png
+[11.255s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/acs6121/materials/textures/acs6121_floor.svg
+[11.265s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/acs6121/model.config
+[11.294s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/acs6121/model.sdf
+[11.306s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/arena_walls/model.config
+[11.330s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/arena_walls/model.sdf
+[11.362s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/beacon_colours/materials/scripts/beacon_colours.material
+[11.405s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/beacon_colours/materials/textures/beacon_colours.png
+[11.444s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/beacon_colours/materials/textures/beacon_colours.svg
+[11.445s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/beacon_colours/model.config
+[11.464s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/beacon_colours/model.sdf
+[11.485s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/beaconing/materials/scripts/floor.material
+[11.511s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/beaconing/materials/textures/beaconing_floor.png
+[11.533s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/beaconing/materials/textures/beaconing_floor.svg
+[11.565s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/beaconing/model.config
+[11.608s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/beaconing/model.sdf
+[11.635s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/coloured_pillars/model.config
+[11.655s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/coloured_pillars/model.sdf
+[11.695s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/cr5_arena_walls/model.config
+[11.738s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/cr5_arena_walls/model.sdf
+[11.754s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/line_following_setup/materials/scripts/line_following_setup.material
+[11.785s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/line_following_setup/materials/textures/line_following_setup.png
+[11.831s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/line_following_setup/materials/textures/line_following_setup.svg
+[11.882s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/line_following_setup/model.config
+[11.919s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/line_following_setup/model.sdf
+[11.973s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/line_following_track/materials/scripts/line_following_track.material
+[12.018s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/line_following_track/materials/textures/line_following_track.png
+[12.034s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/line_following_track/materials/textures/line_following_track.svg
+[12.044s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/line_following_track/model.config
+[12.061s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/line_following_track/model.sdf
+[12.104s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/navigation/materials/scripts/floor.material
+[12.115s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/navigation/materials/textures/navigation_floor.png
+[12.151s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/navigation/materials/textures/navigation_floor.svg
+[12.170s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/navigation/model.config
+[12.205s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/navigation/model.sdf
+[12.239s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/wooden_walls/model.config
+[12.251s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/models/wooden_walls/model.sdf
+[12.291s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/worlds/acs6121.world
+[12.304s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/worlds/beacon_colours.world
+[12.313s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/worlds/beaconing.world
+[12.339s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/worlds/coloured_pillars.world
+[12.387s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/worlds/empty.world
+[12.422s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/worlds/line_following.world
+[12.439s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/worlds/line_following_setup.world
+[12.484s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/worlds/nav.world
+[12.518s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/rviz/waffle.rviz
+[12.536s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/rviz/waffle_cartographer.rviz
+[12.573s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/ament_index/resource_index/package_run_dependencies/tuos_simulations
+[12.616s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/ament_index/resource_index/parent_prefix_path/tuos_simulations
+[12.655s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/environment/ament_prefix_path.sh
+[12.671s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/environment/ament_prefix_path.dsv
+[12.710s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/environment/path.sh
+[12.741s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/environment/path.dsv
+[12.758s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/local_setup.bash
+[12.770s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/local_setup.sh
+[12.783s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/local_setup.zsh
+[12.795s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/local_setup.dsv
+[12.825s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/package.dsv
+[12.850s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/ament_index/resource_index/packages/tuos_simulations
+[12.878s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/cmake/ament_cmake_export_dependencies-extras.cmake
+[12.921s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/cmake/tuos_simulationsConfig.cmake
+[12.959s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/cmake/tuos_simulationsConfig-version.cmake
+[12.986s] -- Symlinking: /home/student/ros2_ws/install/tuos_simulations/share/tuos_simulations/package.xml
+[13.044s] Invoked command in '/home/student/ros2_ws/build/tuos_simulations' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/tuos_simulations

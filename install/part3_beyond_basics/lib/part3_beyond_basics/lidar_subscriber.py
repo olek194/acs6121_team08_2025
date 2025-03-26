@@ -1,0 +1,1 @@
+/home/student/ros2_ws/src/part3_beyond_basics/scripts/lidar_subscriber.py

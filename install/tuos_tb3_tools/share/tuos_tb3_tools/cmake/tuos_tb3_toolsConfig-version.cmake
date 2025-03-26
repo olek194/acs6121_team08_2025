@@ -1,0 +1,1 @@
+/home/student/ros2_ws/build/tuos_tb3_tools/ament_cmake_core/tuos_tb3_toolsConfig-version.cmake

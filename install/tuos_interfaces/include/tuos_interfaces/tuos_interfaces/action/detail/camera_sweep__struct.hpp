@@ -1,0 +1,1 @@
+/home/student/ros2_ws/build/tuos_interfaces/rosidl_generator_cpp/tuos_interfaces/action/detail/camera_sweep__struct.hpp

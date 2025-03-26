@@ -1,0 +1,1 @@
+/home/student/ros2_ws/build/tuos_interfaces/ament_cmake_core/tuos_interfacesConfig-version.cmake

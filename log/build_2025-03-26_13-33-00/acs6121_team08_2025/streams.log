@@ -1,0 +1,82 @@
+[0.062s] Invoking command in '/home/student/ros2_ws/build/acs6121_team08_2025': CMAKE_PREFIX_PATH=/home/student/ros2_ws/install/tuos_simulations:/home/student/ros2_ws/install/acs6121_team08_2025:/home/student/ros2_ws/install/tuos_ros:/home/student/ros2_ws/install/tuos_tb3_tools:/home/student/ros2_ws/install/com2009_simulations:/home/student/ros2_ws/install/tuos_interfaces:/home/student/ros2_ws/install/tuos_examples:/home/student/ros2_ws/install/part3_beyond_basics:/home/student/ros2_ws/install/part2_navigation:/home/student/ros2_ws/install/part1_pubsub:/opt/ros/humble /usr/bin/cmake /home/student/ros2_ws/src/acs6121_team08_2025 -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/student/ros2_ws/install/acs6121_team08_2025
+[0.376s] -- The C compiler identification is GNU 11.4.0
+[1.352s] -- The CXX compiler identification is GNU 11.4.0
+[1.931s] -- Detecting C compiler ABI info
+[2.370s] -- Detecting C compiler ABI info - done
+[2.370s] -- Check for working C compiler: /usr/bin/cc - skipped
+[2.371s] -- Detecting C compile features
+[2.371s] -- Detecting C compile features - done
+[2.375s] -- Detecting CXX compiler ABI info
+[2.927s] -- Detecting CXX compiler ABI info - done
+[2.968s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[2.968s] -- Detecting CXX compile features
+[2.971s] -- Detecting CXX compile features - done
+[2.974s] -- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)
+[3.495s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[3.637s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[3.749s] -- Found rclpy: 3.3.15 (/opt/ros/humble/share/rclpy/cmake)
+[3.750s] -- Found rclcpp: 16.0.11 (/opt/ros/humble/share/rclcpp/cmake)
+[4.084s] -- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[4.098s] -- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[4.115s] -- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[4.140s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[4.169s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[4.266s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[4.272s] -- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[6.023s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[7.444s] -- Found FastRTPS: /opt/ros/humble/include  
+[9.991s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[10.008s] -- Looking for pthread.h
+[10.304s] -- Looking for pthread.h - found
+[10.304s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[10.590s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[10.597s] -- Found Threads: TRUE  
+[11.110s] -- Configuring done
+[11.118s] -- Generating done
+[11.139s] -- Build files have been written to: /home/student/ros2_ws/build/acs6121_team08_2025
+[11.175s] Invoked command in '/home/student/ros2_ws/build/acs6121_team08_2025' returned '0': CMAKE_PREFIX_PATH=/home/student/ros2_ws/install/tuos_simulations:/home/student/ros2_ws/install/acs6121_team08_2025:/home/student/ros2_ws/install/tuos_ros:/home/student/ros2_ws/install/tuos_tb3_tools:/home/student/ros2_ws/install/com2009_simulations:/home/student/ros2_ws/install/tuos_interfaces:/home/student/ros2_ws/install/tuos_examples:/home/student/ros2_ws/install/part3_beyond_basics:/home/student/ros2_ws/install/part2_navigation:/home/student/ros2_ws/install/part1_pubsub:/opt/ros/humble /usr/bin/cmake /home/student/ros2_ws/src/acs6121_team08_2025 -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/student/ros2_ws/install/acs6121_team08_2025
+[11.176s] Invoking command in '/home/student/ros2_ws/build/acs6121_team08_2025': CMAKE_PREFIX_PATH=/home/student/ros2_ws/install/tuos_simulations:/home/student/ros2_ws/install/acs6121_team08_2025:/home/student/ros2_ws/install/tuos_ros:/home/student/ros2_ws/install/tuos_tb3_tools:/home/student/ros2_ws/install/com2009_simulations:/home/student/ros2_ws/install/tuos_interfaces:/home/student/ros2_ws/install/tuos_examples:/home/student/ros2_ws/install/part3_beyond_basics:/home/student/ros2_ws/install/part2_navigation:/home/student/ros2_ws/install/part1_pubsub:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/acs6121_team08_2025 -- -j12 -l12
+[11.341s] Built target ament_cmake_python_symlink_acs6121_team08_2025_modules
+[11.816s] running egg_info
+[11.818s] creating acs6121_team08_2025_modules.egg-info
+[11.818s] writing acs6121_team08_2025_modules.egg-info/PKG-INFO
+[11.818s] writing dependency_links to acs6121_team08_2025_modules.egg-info/dependency_links.txt
+[11.818s] writing top-level names to acs6121_team08_2025_modules.egg-info/top_level.txt
+[11.818s] writing manifest file 'acs6121_team08_2025_modules.egg-info/SOURCES.txt'
+[11.819s] reading manifest file 'acs6121_team08_2025_modules.egg-info/SOURCES.txt'
+[11.819s] writing manifest file 'acs6121_team08_2025_modules.egg-info/SOURCES.txt'
+[11.897s] Built target ament_cmake_python_build_acs6121_team08_2025_modules_egg
+[11.918s] Invoked command in '/home/student/ros2_ws/build/acs6121_team08_2025' returned '0': CMAKE_PREFIX_PATH=/home/student/ros2_ws/install/tuos_simulations:/home/student/ros2_ws/install/acs6121_team08_2025:/home/student/ros2_ws/install/tuos_ros:/home/student/ros2_ws/install/tuos_tb3_tools:/home/student/ros2_ws/install/com2009_simulations:/home/student/ros2_ws/install/tuos_interfaces:/home/student/ros2_ws/install/tuos_examples:/home/student/ros2_ws/install/part3_beyond_basics:/home/student/ros2_ws/install/part2_navigation:/home/student/ros2_ws/install/part1_pubsub:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/acs6121_team08_2025 -- -j12 -l12
+[11.919s] Invoking command in '/home/student/ros2_ws/build/acs6121_team08_2025': CMAKE_PREFIX_PATH=/home/student/ros2_ws/install/tuos_simulations:/home/student/ros2_ws/install/acs6121_team08_2025:/home/student/ros2_ws/install/tuos_ros:/home/student/ros2_ws/install/tuos_tb3_tools:/home/student/ros2_ws/install/com2009_simulations:/home/student/ros2_ws/install/tuos_interfaces:/home/student/ros2_ws/install/tuos_examples:/home/student/ros2_ws/install/part3_beyond_basics:/home/student/ros2_ws/install/part2_navigation:/home/student/ros2_ws/install/part1_pubsub:/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/acs6121_team08_2025
+[11.939s] -- Install configuration: ""
+[11.940s] -- Execute custom install script
+[11.942s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/environment/pythonpath.sh
+[11.959s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/environment/pythonpath.dsv
+[11.987s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/local/lib/python3.10/dist-packages/acs6121_team08_2025_modules-0.0.0-py3.10.egg-info/PKG-INFO
+[12.006s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/local/lib/python3.10/dist-packages/acs6121_team08_2025_modules-0.0.0-py3.10.egg-info/SOURCES.txt
+[12.023s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/local/lib/python3.10/dist-packages/acs6121_team08_2025_modules-0.0.0-py3.10.egg-info/dependency_links.txt
+[12.042s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/local/lib/python3.10/dist-packages/acs6121_team08_2025_modules-0.0.0-py3.10.egg-info/top_level.txt
+[12.052s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/local/lib/python3.10/dist-packages/acs6121_team08_2025_modules/__init__.py
+[12.082s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/local/lib/python3.10/dist-packages/acs6121_team08_2025_modules/tb3_tools.py
+[12.099s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/lib/acs6121_team08_2025/explorer_node.py
+[12.116s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/lib/acs6121_team08_2025/map_saver_client.py
+[12.144s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/launch/explore.launch.py
+[12.158s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/ament_index/resource_index/package_run_dependencies/acs6121_team08_2025
+[12.170s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/ament_index/resource_index/parent_prefix_path/acs6121_team08_2025
+[12.180s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/environment/ament_prefix_path.sh
+[12.223s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/environment/ament_prefix_path.dsv
+[12.235s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/environment/path.sh
+[12.266s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/environment/path.dsv
+[12.291s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/local_setup.bash
+[12.307s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/local_setup.sh
+[12.326s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/local_setup.zsh
+[12.359s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/local_setup.dsv
+[12.390s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/package.dsv
+[12.402s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/ament_index/resource_index/packages/acs6121_team08_2025
+[12.416s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/cmake/acs6121_team08_2025Config.cmake
+[12.441s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/cmake/acs6121_team08_2025Config-version.cmake
+[12.457s] -- Symlinking: /home/student/ros2_ws/install/acs6121_team08_2025/share/acs6121_team08_2025/package.xml
+[12.511s] Listing '/home/student/ros2_ws/install/acs6121_team08_2025/local/lib/python3.10/dist-packages/acs6121_team08_2025_modules'...
+[12.511s] Compiling '/home/student/ros2_ws/install/acs6121_team08_2025/local/lib/python3.10/dist-packages/acs6121_team08_2025_modules/__init__.py'...
+[12.511s] Compiling '/home/student/ros2_ws/install/acs6121_team08_2025/local/lib/python3.10/dist-packages/acs6121_team08_2025_modules/tb3_tools.py'...
+[12.529s] Invoked command in '/home/student/ros2_ws/build/acs6121_team08_2025' returned '0': CMAKE_PREFIX_PATH=/home/student/ros2_ws/install/tuos_simulations:/home/student/ros2_ws/install/acs6121_team08_2025:/home/student/ros2_ws/install/tuos_ros:/home/student/ros2_ws/install/tuos_tb3_tools:/home/student/ros2_ws/install/com2009_simulations:/home/student/ros2_ws/install/tuos_interfaces:/home/student/ros2_ws/install/tuos_examples:/home/student/ros2_ws/install/part3_beyond_basics:/home/student/ros2_ws/install/part2_navigation:/home/student/ros2_ws/install/part1_pubsub:/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/acs6121_team08_2025

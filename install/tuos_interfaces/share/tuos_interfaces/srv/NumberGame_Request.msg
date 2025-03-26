@@ -1,0 +1,1 @@
+/home/student/ros2_ws/build/tuos_interfaces/rosidl_cmake/srv/NumberGame_Request.msg

@@ -1,0 +1,38 @@
+// generated from rosidl_adapter/resource/action.idl.em
+// with input from tuos_interfaces/action/CameraSweep.action
+// generated code does not contain a copyright notice
+
+
+module tuos_interfaces {
+  module action {
+    @verbatim (language="comment", text=
+      "goal")
+    struct CameraSweep_Goal {
+      @verbatim (language="comment", text=
+        "the angular sweep (in degrees) over which to capture images")
+      float sweep_angle;
+
+      @verbatim (language="comment", text=
+        "the number of images to capture during the sweep")
+      int32 image_count;
+    };
+    @verbatim (language="comment", text=
+      "result")
+    struct CameraSweep_Result {
+      @verbatim (language="comment", text=
+        "The filesystem location of the captured images")
+      string image_path;
+    };
+    @verbatim (language="comment", text=
+      "feedback")
+    struct CameraSweep_Feedback {
+      @verbatim (language="comment", text=
+        "the number of images taken")
+      int32 current_image;
+
+      @verbatim (language="comment", text=
+        "the current angular position of the robot (in degrees)")
+      float current_angle;
+    };
+  };
+};

@@ -1,0 +1,1 @@
+/home/student/ros2_ws/build/tuos_ros/ament_cmake_core/tuos_rosConfig-version.cmake
