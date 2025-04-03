@@ -1,0 +1,38 @@
+[100%] Built target cpp_executable
+[100%] Built target ament_cmake_python_symlink_part1_pubsub_modules
+running egg_info
+writing part1_pubsub_modules.egg-info/PKG-INFO
+writing dependency_links to part1_pubsub_modules.egg-info/dependency_links.txt
+writing top-level names to part1_pubsub_modules.egg-info/top_level.txt
+reading manifest file 'part1_pubsub_modules.egg-info/SOURCES.txt'
+writing manifest file 'part1_pubsub_modules.egg-info/SOURCES.txt'
+[100%] Built target ament_cmake_python_build_part1_pubsub_modules_egg
+-- Install configuration: ""
+-- Execute custom install script
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/lib/part1_pubsub/cpp_executable
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/environment/pythonpath.sh
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/environment/pythonpath.dsv
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/local/lib/python3.10/dist-packages/part1_pubsub_modules-0.0.0-py3.10.egg-info/PKG-INFO
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/local/lib/python3.10/dist-packages/part1_pubsub_modules-0.0.0-py3.10.egg-info/SOURCES.txt
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/local/lib/python3.10/dist-packages/part1_pubsub_modules-0.0.0-py3.10.egg-info/dependency_links.txt
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/local/lib/python3.10/dist-packages/part1_pubsub_modules-0.0.0-py3.10.egg-info/top_level.txt
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/local/lib/python3.10/dist-packages/part1_pubsub_modules/__init__.py
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/local/lib/python3.10/dist-packages/part1_pubsub_modules/tb3_tools.py
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/lib/part1_pubsub/publisher.py
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/lib/part1_pubsub/subscriber.py
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/ament_index/resource_index/package_run_dependencies/part1_pubsub
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/ament_index/resource_index/parent_prefix_path/part1_pubsub
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/environment/ament_prefix_path.sh
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/environment/ament_prefix_path.dsv
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/environment/path.sh
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/environment/path.dsv
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/local_setup.bash
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/local_setup.sh
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/local_setup.zsh
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/local_setup.dsv
+-- Symlinking: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/package.dsv
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/ament_index/resource_index/packages/part1_pubsub
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/cmake/part1_pubsubConfig.cmake
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/cmake/part1_pubsubConfig-version.cmake
+-- Up-to-date symlink: /home/student/ros2_ws/install/part1_pubsub/share/part1_pubsub/package.xml
+Listing '/home/student/ros2_ws/install/part1_pubsub/local/lib/python3.10/dist-packages/part1_pubsub_modules'...

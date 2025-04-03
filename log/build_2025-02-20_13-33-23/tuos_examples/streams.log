@@ -1,0 +1,91 @@
+[0.020s] Invoking command in '/home/student/ros2_ws/build/tuos_examples': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/student/ros2_ws/src/tuos_ros/tuos_examples -DCMAKE_INSTALL_PREFIX=/home/student/ros2_ws/install/tuos_examples
+[0.178s] -- The C compiler identification is GNU 11.4.0
+[0.396s] -- The CXX compiler identification is GNU 11.4.0
+[0.547s] -- Detecting C compiler ABI info
+[0.630s] -- Detecting C compiler ABI info - done
+[0.635s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.635s] -- Detecting C compile features
+[0.636s] -- Detecting C compile features - done
+[0.638s] -- Detecting CXX compiler ABI info
+[0.739s] -- Detecting CXX compiler ABI info - done
+[0.745s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.746s] -- Detecting CXX compile features
+[0.746s] -- Detecting CXX compile features - done
+[0.760s] -- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.887s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.992s] -- Found rclcpp: 16.0.11 (/opt/ros/humble/share/rclcpp/cmake)
+[1.106s] -- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[1.112s] -- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[1.121s] -- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[1.139s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.156s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.216s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[1.220s] -- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[1.593s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[1.944s] -- Found FastRTPS: /opt/ros/humble/include  
+[2.891s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[2.904s] -- Looking for pthread.h
+[3.001s] -- Looking for pthread.h - found
+[3.001s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[3.130s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[3.131s] -- Found Threads: TRUE  
+[3.217s] -- Found rclpy: 3.3.15 (/opt/ros/humble/share/rclpy/cmake)
+[3.424s] -- Configuring done
+[3.449s] -- Generating done
+[3.463s] -- Build files have been written to: /home/student/ros2_ws/build/tuos_examples
+[3.476s] Invoked command in '/home/student/ros2_ws/build/tuos_examples' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/student/ros2_ws/src/tuos_ros/tuos_examples -DCMAKE_INSTALL_PREFIX=/home/student/ros2_ws/install/tuos_examples
+[3.477s] Invoking command in '/home/student/ros2_ws/build/tuos_examples': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/tuos_examples -- -j12 -l12
+[3.612s] [ 50%] [32mBuilding CXX object CMakeFiles/cpp_executable.dir/src/minimal_node.cpp.o[0m
+[3.643s] [ 50%] Built target ament_cmake_python_copy_tuos_examples
+[4.062s] running egg_info
+[4.063s] creating tuos_examples.egg-info
+[4.064s] writing tuos_examples.egg-info/PKG-INFO
+[4.064s] writing dependency_links to tuos_examples.egg-info/dependency_links.txt
+[4.064s] writing top-level names to tuos_examples.egg-info/top_level.txt
+[4.065s] writing manifest file 'tuos_examples.egg-info/SOURCES.txt'
+[4.068s] reading manifest file 'tuos_examples.egg-info/SOURCES.txt'
+[4.069s] writing manifest file 'tuos_examples.egg-info/SOURCES.txt'
+[4.129s] [ 50%] Built target ament_cmake_python_build_tuos_examples_egg
+[6.597s] [100%] [32m[1mLinking CXX executable cpp_executable[0m
+[6.751s] [100%] Built target cpp_executable
+[6.759s] Invoked command in '/home/student/ros2_ws/build/tuos_examples' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/tuos_examples -- -j12 -l12
+[6.761s] Invoking command in '/home/student/ros2_ws/build/tuos_examples': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/tuos_examples
+[6.766s] -- Install configuration: ""
+[6.766s] -- Installing: /home/student/ros2_ws/install/tuos_examples/lib/tuos_examples/cpp_executable
+[6.766s] -- Set runtime path of "/home/student/ros2_ws/install/tuos_examples/lib/tuos_examples/cpp_executable" to ""
+[6.767s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/environment/pythonpath.sh
+[6.767s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/environment/pythonpath.dsv
+[6.767s] -- Installing: /home/student/ros2_ws/install/tuos_examples/local/lib/python3.10/dist-packages/tuos_examples-0.0.0-py3.10.egg-info
+[6.768s] -- Installing: /home/student/ros2_ws/install/tuos_examples/local/lib/python3.10/dist-packages/tuos_examples-0.0.0-py3.10.egg-info/SOURCES.txt
+[6.768s] -- Installing: /home/student/ros2_ws/install/tuos_examples/local/lib/python3.10/dist-packages/tuos_examples-0.0.0-py3.10.egg-info/top_level.txt
+[6.768s] -- Installing: /home/student/ros2_ws/install/tuos_examples/local/lib/python3.10/dist-packages/tuos_examples-0.0.0-py3.10.egg-info/PKG-INFO
+[6.769s] -- Installing: /home/student/ros2_ws/install/tuos_examples/local/lib/python3.10/dist-packages/tuos_examples-0.0.0-py3.10.egg-info/dependency_links.txt
+[6.769s] -- Installing: /home/student/ros2_ws/install/tuos_examples/local/lib/python3.10/dist-packages/tuos_examples
+[6.769s] -- Installing: /home/student/ros2_ws/install/tuos_examples/local/lib/python3.10/dist-packages/tuos_examples/tb3_tools.py
+[6.769s] -- Installing: /home/student/ros2_ws/install/tuos_examples/local/lib/python3.10/dist-packages/tuos_examples/__init__.py
+[6.792s] Listing '/home/student/ros2_ws/install/tuos_examples/local/lib/python3.10/dist-packages/tuos_examples'...
+[6.792s] Compiling '/home/student/ros2_ws/install/tuos_examples/local/lib/python3.10/dist-packages/tuos_examples/__init__.py'...
+[6.793s] Compiling '/home/student/ros2_ws/install/tuos_examples/local/lib/python3.10/dist-packages/tuos_examples/tb3_tools.py'...
+[6.795s] -- Installing: /home/student/ros2_ws/install/tuos_examples/lib/tuos_examples/odom_subscriber_template.py
+[6.796s] -- Installing: /home/student/ros2_ws/install/tuos_examples/lib/tuos_examples/robot_pose.py
+[6.796s] -- Installing: /home/student/ros2_ws/install/tuos_examples/lib/tuos_examples/camera_sweep_action_server.py
+[6.796s] -- Installing: /home/student/ros2_ws/install/tuos_examples/lib/tuos_examples/waffle_yaw_action_server.py
+[6.796s] -- Installing: /home/student/ros2_ws/install/tuos_examples/lib/tuos_examples/image_colours.py
+[6.796s] -- Installing: /home/student/ros2_ws/install/tuos_examples/lib/tuos_examples/colour_search.py
+[6.796s] -- Installing: /home/student/ros2_ws/install/tuos_examples/lib/tuos_examples/number_game.py
+[6.797s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/ament_index/resource_index/package_run_dependencies/tuos_examples
+[6.797s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/ament_index/resource_index/parent_prefix_path/tuos_examples
+[6.797s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/environment/ament_prefix_path.sh
+[6.797s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/environment/ament_prefix_path.dsv
+[6.797s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/environment/path.sh
+[6.797s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/environment/path.dsv
+[6.797s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/local_setup.bash
+[6.797s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/local_setup.sh
+[6.798s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/local_setup.zsh
+[6.798s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/local_setup.dsv
+[6.798s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/package.dsv
+[6.798s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/ament_index/resource_index/packages/tuos_examples
+[6.798s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/cmake/tuos_examplesConfig.cmake
+[6.798s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/cmake/tuos_examplesConfig-version.cmake
+[6.798s] -- Installing: /home/student/ros2_ws/install/tuos_examples/share/tuos_examples/package.xml
+[6.800s] Invoked command in '/home/student/ros2_ws/build/tuos_examples' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/tuos_examples

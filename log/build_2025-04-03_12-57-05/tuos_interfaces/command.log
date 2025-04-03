@@ -1,0 +1,4 @@
+Invoking command in '/home/student/ros2_ws/build/tuos_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/student/ros2_ws/src/tuos_ros/tuos_interfaces -DCMAKE_INSTALL_PREFIX=/home/student/ros2_ws/install/tuos_interfaces
+Invoked command in '/home/student/ros2_ws/build/tuos_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/student/ros2_ws/src/tuos_ros/tuos_interfaces -DCMAKE_INSTALL_PREFIX=/home/student/ros2_ws/install/tuos_interfaces
+Invoking command in '/home/student/ros2_ws/build/tuos_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/tuos_interfaces -- -j12 -l12
+Invoked command in '/home/student/ros2_ws/build/tuos_interfaces' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/tuos_interfaces -- -j12 -l12

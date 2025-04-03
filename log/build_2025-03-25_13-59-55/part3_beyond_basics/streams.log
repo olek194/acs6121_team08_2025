@@ -1,0 +1,89 @@
+[0.032s] Invoking command in '/home/student/ros2_ws/build/part3_beyond_basics': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/part3_beyond_basics -- -j12 -l12
+[0.081s] -- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.317s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.330s] -- Found rclcpp: 16.0.11 (/opt/ros/humble/share/rclcpp/cmake)
+[0.544s] -- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.547s] -- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.559s] -- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.579s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.603s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.652s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[0.654s] -- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[6.635s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[6.729s] -- Found rclpy: 3.3.15 (/opt/ros/humble/share/rclpy/cmake)
+[7.063s] -- Configuring done
+[7.117s] -- Generating done
+[7.120s] -- Build files have been written to: /home/student/ros2_ws/build/part3_beyond_basics
+[7.190s] [35m[1mConsolidate compiler generated dependencies of target cpp_executable[0m
+[7.230s] [100%] Built target cpp_executable
+[7.293s] [100%] Built target ament_cmake_python_symlink_part3_beyond_basics_modules
+[7.943s] running egg_info
+[7.947s] writing part3_beyond_basics_modules.egg-info/PKG-INFO
+[7.948s] writing dependency_links to part3_beyond_basics_modules.egg-info/dependency_links.txt
+[7.949s] writing top-level names to part3_beyond_basics_modules.egg-info/top_level.txt
+[7.955s] reading manifest file 'part3_beyond_basics_modules.egg-info/SOURCES.txt'
+[7.961s] writing manifest file 'part3_beyond_basics_modules.egg-info/SOURCES.txt'
+[8.082s] [100%] Built target ament_cmake_python_build_part3_beyond_basics_modules_egg
+[8.114s] Invoked command in '/home/student/ros2_ws/build/part3_beyond_basics' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/part3_beyond_basics -- -j12 -l12
+[8.182s] Invoking command in '/home/student/ros2_ws/build/part3_beyond_basics': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/part3_beyond_basics
+[8.183s] -- Install configuration: ""
+[8.183s] -- Execute custom install script
+[8.184s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/lib/part3_beyond_basics/cpp_executable
+[8.184s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/environment/pythonpath.sh
+[8.184s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/environment/pythonpath.dsv
+[8.184s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/local/lib/python3.10/dist-packages/part3_beyond_basics_modules-0.0.0-py3.10.egg-info/PKG-INFO
+[8.185s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/local/lib/python3.10/dist-packages/part3_beyond_basics_modules-0.0.0-py3.10.egg-info/SOURCES.txt
+[8.185s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/local/lib/python3.10/dist-packages/part3_beyond_basics_modules-0.0.0-py3.10.egg-info/dependency_links.txt
+[8.185s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/local/lib/python3.10/dist-packages/part3_beyond_basics_modules-0.0.0-py3.10.egg-info/top_level.txt
+[8.186s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/local/lib/python3.10/dist-packages/part3_beyond_basics_modules/__init__.py
+[8.186s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/local/lib/python3.10/dist-packages/part3_beyond_basics_modules/tb3_tools.py
+[8.187s] -- Symlinking: /home/student/ros2_ws/install/part3_beyond_basics/lib/part3_beyond_basics/lidar_subscriber.py
+[8.221s] [33mCMake Warning (dev) at ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:62 (file):
+[8.221s]   Policy CMP0009 is not set: FILE GLOB_RECURSE calls should not follow
+[8.221s]   symlinks by default.  Run "cmake --help-policy CMP0009" for policy details.
+[8.222s]   Use the cmake_policy command to set the policy and suppress this warning.
+[8.222s] Call Stack (most recent call first):
+[8.222s]   ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:332 (ament_cmake_symlink_install_directory)
+[8.222s]   cmake_install.cmake:46 (include)
+[8.222s] This warning is for project developers.  Use -Wno-dev to suppress it.
+[8.222s] [0m
+[8.222s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/build/.built_by
+[8.222s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/build/COLCON_IGNORE
+[8.222s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/circle.launch.py
+[8.223s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/.colcon_install_layout
+[8.223s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/COLCON_IGNORE
+[8.223s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/_local_setup_util_ps1.py
+[8.223s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/_local_setup_util_sh.py
+[8.223s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/local_setup.bash
+[8.223s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/local_setup.ps1
+[8.223s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/local_setup.sh
+[8.223s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/local_setup.zsh
+[8.223s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/setup.bash
+[8.223s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/setup.ps1
+[8.223s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/setup.sh
+[8.234s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/install/setup.zsh
+[8.235s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/log/COLCON_IGNORE
+[8.235s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/log/build_2025-03-25_13-44-30/events.log
+[8.235s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/log/build_2025-03-25_13-44-30/logger_all.log
+[8.236s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/log/latest/events.log
+[8.236s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/log/latest/logger_all.log
+[8.236s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/log/latest_build/events.log
+[8.236s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/log/latest_build/logger_all.log
+[8.236s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/launch/pubsub.launch.py
+[8.236s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/ament_index/resource_index/package_run_dependencies/part3_beyond_basics
+[8.236s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/ament_index/resource_index/parent_prefix_path/part3_beyond_basics
+[8.236s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/environment/ament_prefix_path.sh
+[8.236s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/environment/ament_prefix_path.dsv
+[8.236s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/environment/path.sh
+[8.237s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/environment/path.dsv
+[8.237s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/local_setup.bash
+[8.237s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/local_setup.sh
+[8.237s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/local_setup.zsh
+[8.237s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/local_setup.dsv
+[8.238s] -- Symlinking: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/package.dsv
+[8.256s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/ament_index/resource_index/packages/part3_beyond_basics
+[8.264s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/cmake/part3_beyond_basicsConfig.cmake
+[8.264s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/cmake/part3_beyond_basicsConfig-version.cmake
+[8.264s] -- Up-to-date symlink: /home/student/ros2_ws/install/part3_beyond_basics/share/part3_beyond_basics/package.xml
+[8.388s] Listing '/home/student/ros2_ws/install/part3_beyond_basics/local/lib/python3.10/dist-packages/part3_beyond_basics_modules'...
+[8.430s] Invoked command in '/home/student/ros2_ws/build/part3_beyond_basics' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/part3_beyond_basics

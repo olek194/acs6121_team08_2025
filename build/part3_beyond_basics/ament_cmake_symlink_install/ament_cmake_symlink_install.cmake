@@ -325,8 +325,8 @@ ament_cmake_symlink_install_directory("/home/student/ros2_ws/src/part3_beyond_ba
 # install(DIRECTORY "/home/student/ros2_ws/src/part3_beyond_basics/part3_beyond_basics_modules/" "DESTINATION" "local/lib/python3.10/dist-packages/part3_beyond_basics_modules" "PATTERN_EXCLUDE" "*.pyc" "PATTERN_EXCLUDE" "__pycache__")
 ament_cmake_symlink_install_directory("/home/student/ros2_ws/src/part3_beyond_basics" DIRECTORY "/home/student/ros2_ws/src/part3_beyond_basics/part3_beyond_basics_modules/" "DESTINATION" "local/lib/python3.10/dist-packages/part3_beyond_basics_modules" "PATTERN_EXCLUDE" "*.pyc" "PATTERN_EXCLUDE" "__pycache__")
 
-# install(PROGRAMS "scripts/lidar_subscriber.py" "DESTINATION" "lib/part3_beyond_basics")
-ament_cmake_symlink_install_programs("/home/student/ros2_ws/src/part3_beyond_basics" PROGRAMS "scripts/lidar_subscriber.py" "DESTINATION" "lib/part3_beyond_basics")
+# install(PROGRAMS "scripts/lidar_subscriber.py" "scripts/vel.py" "DESTINATION" "lib/part3_beyond_basics")
+ament_cmake_symlink_install_programs("/home/student/ros2_ws/src/part3_beyond_basics" PROGRAMS "scripts/lidar_subscriber.py" "scripts/vel.py" "DESTINATION" "lib/part3_beyond_basics")
 
 # install(DIRECTORY "launch" "DESTINATION" "share/part3_beyond_basics")
 ament_cmake_symlink_install_directory("/home/student/ros2_ws/src/part3_beyond_basics" DIRECTORY "launch" "DESTINATION" "share/part3_beyond_basics")

@@ -1,0 +1,1 @@
+Invoking command in '/home/student/ros2_ws/build/tuos_examples': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/student/ros2_ws/src/tuos_ros/tuos_examples -DCMAKE_INSTALL_PREFIX=/home/student/ros2_ws/install/tuos_examples

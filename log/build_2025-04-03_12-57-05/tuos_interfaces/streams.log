@@ -1,0 +1,32 @@
+[0.079s] Invoking command in '/home/student/ros2_ws/build/tuos_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/student/ros2_ws/src/tuos_ros/tuos_interfaces -DCMAKE_INSTALL_PREFIX=/home/student/ros2_ws/install/tuos_interfaces
+[0.195s] -- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.594s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.697s] -- Found ament_lint_auto: 0.12.11 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[0.918s] -- Found geometry_msgs: 4.2.4 (/opt/ros/humble/share/geometry_msgs/cmake)
+[1.287s] -- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[1.296s] -- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[1.306s] -- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[1.334s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.360s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.516s] -- Found rosidl_default_generators: 1.2.0 (/opt/ros/humble/share/rosidl_default_generators/cmake)
+[2.383s] -- Found ament_cmake_ros: 0.10.0 (/opt/ros/humble/share/ament_cmake_ros/cmake)
+[3.273s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[3.633s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[3.712s] -- Found python_cmake_module: 0.10.0 (/opt/ros/humble/share/python_cmake_module/cmake)
+[3.795s] -- Using PYTHON_EXECUTABLE: /usr/bin/python3
+[3.795s] -- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.10
+[3.795s] -- Using PYTHON_LIBRARIES: /usr/lib/x86_64-linux-gnu/libpython3.10.so
+[3.889s] -- Added test 'copyright' to check source files copyright and LICENSE
+[3.894s] -- Added test 'lint_cmake' to check CMake code style
+[3.897s] -- Added test 'xmllint' to check XML markup files
+[3.937s] -- Configuring done
+[4.037s] -- Generating done
+[4.076s] -- Build files have been written to: /home/student/ros2_ws/build/tuos_interfaces
+[4.111s] Invoked command in '/home/student/ros2_ws/build/tuos_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/student/ros2_ws/src/tuos_ros/tuos_interfaces -DCMAKE_INSTALL_PREFIX=/home/student/ros2_ws/install/tuos_interfaces
+[4.117s] Invoking command in '/home/student/ros2_ws/build/tuos_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/tuos_interfaces -- -j12 -l12
+[4.268s] [  2%] Built target tuos_interfaces__cpp
+[4.315s] failed to create symbolic link '/home/student/ros2_ws/build/tuos_interfaces/ament_cmake_python/tuos_interfaces/tuos_interfaces' because existing path cannot be removed: Is a directory
+[4.318s] gmake[2]: *** [CMakeFiles/ament_cmake_python_symlink_tuos_interfaces.dir/build.make:70: CMakeFiles/ament_cmake_python_symlink_tuos_interfaces] Error 1
+[4.319s] gmake[1]: *** [CMakeFiles/Makefile2:421: CMakeFiles/ament_cmake_python_symlink_tuos_interfaces.dir/all] Error 2
+[4.320s] gmake: *** [Makefile:146: all] Error 2
+[4.335s] Invoked command in '/home/student/ros2_ws/build/tuos_interfaces' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/tuos_interfaces -- -j12 -l12

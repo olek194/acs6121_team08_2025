@@ -1,0 +1,229 @@
+[0.026s] Invoking command in '/home/student/ros2_ws/build/tuos_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/tuos_interfaces -- -j12 -l12
+[0.070s] [35m[1mConsolidate compiler generated dependencies of target tuos_interfaces__rosidl_generator_c[0m
+[0.075s] [  2%] Built target tuos_interfaces__cpp
+[0.084s] [ 12%] Built target tuos_interfaces__rosidl_generator_c
+[0.084s] [35m[1mConsolidate compiler generated dependencies of target tuos_interfaces__rosidl_typesupport_cpp[0m
+[0.084s] [35m[1mConsolidate compiler generated dependencies of target tuos_interfaces__rosidl_typesupport_fastrtps_cpp[0m
+[0.085s] [35m[1mConsolidate compiler generated dependencies of target tuos_interfaces__rosidl_typesupport_introspection_cpp[0m
+[0.090s] [ 12%] Built target ament_cmake_python_copy_tuos_interfaces
+[0.095s] [35m[1mConsolidate compiler generated dependencies of target tuos_interfaces__rosidl_typesupport_fastrtps_c[0m
+[0.095s] [35m[1mConsolidate compiler generated dependencies of target tuos_interfaces__rosidl_typesupport_introspection_c[0m
+[0.107s] [35m[1mConsolidate compiler generated dependencies of target tuos_interfaces__rosidl_typesupport_c[0m
+[0.118s] [ 34%] Built target tuos_interfaces__rosidl_typesupport_fastrtps_cpp
+[0.118s] [ 34%] Built target tuos_interfaces__rosidl_typesupport_introspection_cpp
+[0.118s] [ 44%] Built target tuos_interfaces__rosidl_typesupport_cpp
+[0.120s] [ 55%] Built target tuos_interfaces__rosidl_typesupport_introspection_c
+[0.122s] [ 65%] Built target tuos_interfaces__rosidl_typesupport_fastrtps_c
+[0.122s] [ 76%] Built target tuos_interfaces__rosidl_typesupport_c
+[0.126s] [ 76%] Built target tuos_interfaces
+[0.144s] [ 78%] Built target tuos_interfaces__py
+[0.154s] [35m[1mConsolidate compiler generated dependencies of target tuos_interfaces__rosidl_generator_py[0m
+[0.166s] [ 87%] Built target tuos_interfaces__rosidl_generator_py
+[0.175s] [35m[1mConsolidate compiler generated dependencies of target tuos_interfaces__rosidl_typesupport_c__pyext[0m
+[0.175s] [35m[1mConsolidate compiler generated dependencies of target tuos_interfaces__rosidl_typesupport_fastrtps_c__pyext[0m
+[0.175s] [35m[1mConsolidate compiler generated dependencies of target tuos_interfaces__rosidl_typesupport_introspection_c__pyext[0m
+[0.185s] [ 95%] Built target tuos_interfaces__rosidl_typesupport_introspection_c__pyext
+[0.185s] [ 95%] Built target tuos_interfaces__rosidl_typesupport_c__pyext
+[0.185s] [100%] Built target tuos_interfaces__rosidl_typesupport_fastrtps_c__pyext
+[0.310s] running egg_info
+[0.310s] writing tuos_interfaces.egg-info/PKG-INFO
+[0.310s] writing dependency_links to tuos_interfaces.egg-info/dependency_links.txt
+[0.311s] writing top-level names to tuos_interfaces.egg-info/top_level.txt
+[0.313s] reading manifest file 'tuos_interfaces.egg-info/SOURCES.txt'
+[0.314s] writing manifest file 'tuos_interfaces.egg-info/SOURCES.txt'
+[0.343s] [100%] Built target ament_cmake_python_build_tuos_interfaces_egg
+[0.351s] Invoked command in '/home/student/ros2_ws/build/tuos_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/tuos_interfaces -- -j12 -l12
+[0.353s] Invoking command in '/home/student/ros2_ws/build/tuos_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/tuos_interfaces
+[0.359s] -- Install configuration: ""
+[0.359s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/ament_index/resource_index/rosidl_interfaces/tuos_interfaces
+[0.359s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces
+[0.359s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action
+[0.359s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail
+[0.360s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__struct.h
+[0.360s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__functions.h
+[0.360s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__functions.c
+[0.360s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__type_support.h
+[0.360s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/camera_sweep.h
+[0.361s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv
+[0.361s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/number_game.h
+[0.361s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail
+[0.361s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__functions.c
+[0.361s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__type_support.h
+[0.362s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__functions.h
+[0.362s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__struct.h
+[0.362s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg
+[0.362s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/rosidl_generator_c__visibility_control.h
+[0.362s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail
+[0.363s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__struct.h
+[0.363s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__type_support.h
+[0.364s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__functions.h
+[0.364s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__functions.c
+[0.364s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/num.h
+[0.364s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/environment/library_path.sh
+[0.364s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/environment/library_path.dsv
+[0.364s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/lib/libtuos_interfaces__rosidl_generator_c.so
+[0.364s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces
+[0.364s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__rosidl_typesupport_fastrtps_c.h
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__rosidl_typesupport_fastrtps_c.h
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__rosidl_typesupport_fastrtps_c.h
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/lib/libtuos_interfaces__rosidl_typesupport_fastrtps_c.so
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__traits.hpp
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__builder.hpp
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__struct.hpp
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__type_support.hpp
+[0.365s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/camera_sweep.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/number_game.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__traits.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__type_support.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__struct.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__builder.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/num.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__struct.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__type_support.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__traits.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__builder.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/rosidl_generator_cpp__visibility_control.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/dds_fastrtps
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__rosidl_typesupport_fastrtps_cpp.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/dds_fastrtps
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__rosidl_typesupport_fastrtps_cpp.hpp
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail
+[0.366s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/dds_fastrtps
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__rosidl_typesupport_fastrtps_cpp.hpp
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/lib/libtuos_interfaces__rosidl_typesupport_fastrtps_cpp.so
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__rosidl_typesupport_introspection_c.h
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__type_support.c
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__rosidl_typesupport_introspection_c.h
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__type_support.c
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__rosidl_typesupport_introspection_c.h
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__type_support.c
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/lib/libtuos_interfaces__rosidl_typesupport_introspection_c.so
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/lib/libtuos_interfaces__rosidl_typesupport_c.so
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__rosidl_typesupport_introspection_cpp.hpp
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/action/detail/camera_sweep__type_support.cpp
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail
+[0.367s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__rosidl_typesupport_introspection_cpp.hpp
+[0.368s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/srv/detail/number_game__type_support.cpp
+[0.368s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg
+[0.368s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail
+[0.368s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__rosidl_typesupport_introspection_cpp.hpp
+[0.368s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/include/tuos_interfaces/tuos_interfaces/msg/detail/num__type_support.cpp
+[0.368s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/lib/libtuos_interfaces__rosidl_typesupport_introspection_cpp.so
+[0.368s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/lib/libtuos_interfaces__rosidl_typesupport_cpp.so
+[0.368s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/environment/pythonpath.sh
+[0.368s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/environment/pythonpath.dsv
+[0.368s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces-0.0.0-py3.10.egg-info
+[0.368s] -- Installing: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces-0.0.0-py3.10.egg-info/top_level.txt
+[0.368s] -- Installing: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces-0.0.0-py3.10.egg-info/SOURCES.txt
+[0.368s] -- Installing: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces-0.0.0-py3.10.egg-info/dependency_links.txt
+[0.368s] -- Installing: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces-0.0.0-py3.10.egg-info/PKG-INFO
+[0.368s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/action
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/action/_camera_sweep_s.c
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/action/__init__.py
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/action/_camera_sweep.py
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/libtuos_interfaces__rosidl_generator_py.so
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/srv
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/srv/_number_game.py
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/srv/__init__.py
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/srv/_number_game_s.c
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/msg
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/msg/_num_s.c
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/msg/__init__.py
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/msg/_num.py
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/__init__.py
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/tuos_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/tuos_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/_tuos_interfaces_s.ep.rosidl_typesupport_introspection_c.c
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/_tuos_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/_tuos_interfaces_s.ep.rosidl_typesupport_c.c
+[0.369s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/tuos_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[0.387s] Listing '/home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces'...
+[0.387s] Listing '/home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/action'...
+[0.387s] Listing '/home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/msg'...
+[0.387s] Listing '/home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/srv'...
+[0.393s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/tuos_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[0.398s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/tuos_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[0.398s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/local/lib/python3.10/dist-packages/tuos_interfaces/tuos_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[0.399s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/lib/libtuos_interfaces__rosidl_generator_py.so
+[0.399s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/msg/Num.idl
+[0.399s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/action/CameraSweep.idl
+[0.399s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/srv/NumberGame.idl
+[0.399s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/msg/Num.msg
+[0.399s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/action/CameraSweep.action
+[0.399s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/srv/NumberGame.srv
+[0.399s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/srv/NumberGame_Request.msg
+[0.400s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/srv/NumberGame_Response.msg
+[0.400s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/ament_index/resource_index/package_run_dependencies/tuos_interfaces
+[0.400s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/ament_index/resource_index/parent_prefix_path/tuos_interfaces
+[0.400s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/environment/ament_prefix_path.sh
+[0.401s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/environment/ament_prefix_path.dsv
+[0.401s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/environment/path.sh
+[0.401s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/environment/path.dsv
+[0.401s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/local_setup.bash
+[0.401s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/local_setup.sh
+[0.401s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/local_setup.zsh
+[0.401s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/local_setup.dsv
+[0.402s] -- Installing: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/package.dsv
+[0.402s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/ament_index/resource_index/packages/tuos_interfaces
+[0.402s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/export_tuos_interfaces__rosidl_generator_cExport.cmake
+[0.402s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/export_tuos_interfaces__rosidl_generator_cExport-noconfig.cmake
+[0.402s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/export_tuos_interfaces__rosidl_typesupport_fastrtps_cExport.cmake
+[0.402s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/export_tuos_interfaces__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+[0.402s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/export_tuos_interfaces__rosidl_generator_cppExport.cmake
+[0.402s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/export_tuos_interfaces__rosidl_typesupport_fastrtps_cppExport.cmake
+[0.403s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/export_tuos_interfaces__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+[0.403s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/tuos_interfaces__rosidl_typesupport_introspection_cExport.cmake
+[0.403s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/tuos_interfaces__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[0.403s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/tuos_interfaces__rosidl_typesupport_cExport.cmake
+[0.403s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/tuos_interfaces__rosidl_typesupport_cExport-noconfig.cmake
+[0.403s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/tuos_interfaces__rosidl_typesupport_introspection_cppExport.cmake
+[0.404s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/tuos_interfaces__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[0.404s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/tuos_interfaces__rosidl_typesupport_cppExport.cmake
+[0.404s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/tuos_interfaces__rosidl_typesupport_cppExport-noconfig.cmake
+[0.404s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/export_tuos_interfaces__rosidl_generator_pyExport.cmake
+[0.404s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/export_tuos_interfaces__rosidl_generator_pyExport-noconfig.cmake
+[0.404s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/rosidl_cmake-extras.cmake
+[0.404s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/ament_cmake_export_dependencies-extras.cmake
+[0.405s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/ament_cmake_export_include_directories-extras.cmake
+[0.405s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/ament_cmake_export_libraries-extras.cmake
+[0.405s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/ament_cmake_export_targets-extras.cmake
+[0.405s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[0.405s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[0.405s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/tuos_interfacesConfig.cmake
+[0.405s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/cmake/tuos_interfacesConfig-version.cmake
+[0.406s] -- Up-to-date: /home/student/ros2_ws/install/tuos_interfaces/share/tuos_interfaces/package.xml
+[0.414s] Invoked command in '/home/student/ros2_ws/build/tuos_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/tuos_interfaces

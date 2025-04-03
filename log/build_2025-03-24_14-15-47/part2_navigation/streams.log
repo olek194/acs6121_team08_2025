@@ -1,0 +1,42 @@
+[0.044s] Invoking command in '/home/student/ros2_ws/build/part2_navigation': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/part2_navigation -- -j12 -l12
+[0.231s] [100%] Built target cpp_executable
+[0.306s] [100%] Built target ament_cmake_python_symlink_part2_navigation_modules
+[0.885s] running egg_info
+[0.894s] writing part2_navigation_modules.egg-info/PKG-INFO
+[0.898s] writing dependency_links to part2_navigation_modules.egg-info/dependency_links.txt
+[0.899s] writing top-level names to part2_navigation_modules.egg-info/top_level.txt
+[0.902s] reading manifest file 'part2_navigation_modules.egg-info/SOURCES.txt'
+[0.903s] writing manifest file 'part2_navigation_modules.egg-info/SOURCES.txt'
+[0.994s] [100%] Built target ament_cmake_python_build_part2_navigation_modules_egg
+[1.031s] Invoked command in '/home/student/ros2_ws/build/part2_navigation' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/student/ros2_ws/build/part2_navigation -- -j12 -l12
+[1.066s] Invoking command in '/home/student/ros2_ws/build/part2_navigation': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/part2_navigation
+[1.077s] -- Install configuration: ""
+[1.079s] -- Execute custom install script
+[1.079s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/lib/part2_navigation/cpp_executable
+[1.079s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/environment/pythonpath.sh
+[1.079s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/environment/pythonpath.dsv
+[1.081s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/local/lib/python3.10/dist-packages/part2_navigation_modules-0.0.0-py3.10.egg-info/PKG-INFO
+[1.082s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/local/lib/python3.10/dist-packages/part2_navigation_modules-0.0.0-py3.10.egg-info/SOURCES.txt
+[1.082s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/local/lib/python3.10/dist-packages/part2_navigation_modules-0.0.0-py3.10.egg-info/dependency_links.txt
+[1.082s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/local/lib/python3.10/dist-packages/part2_navigation_modules-0.0.0-py3.10.egg-info/top_level.txt
+[1.082s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/local/lib/python3.10/dist-packages/part2_navigation_modules/__init__.py
+[1.082s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/local/lib/python3.10/dist-packages/part2_navigation_modules/tb3_tools.py
+[1.083s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/lib/part2_navigation/odom_subscriber.py
+[1.083s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/lib/part2_navigation/move_circle.py
+[1.083s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/ament_index/resource_index/package_run_dependencies/part2_navigation
+[1.084s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/ament_index/resource_index/parent_prefix_path/part2_navigation
+[1.084s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/environment/ament_prefix_path.sh
+[1.084s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/environment/ament_prefix_path.dsv
+[1.084s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/environment/path.sh
+[1.085s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/environment/path.dsv
+[1.085s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/local_setup.bash
+[1.085s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/local_setup.sh
+[1.086s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/local_setup.zsh
+[1.086s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/local_setup.dsv
+[1.086s] -- Symlinking: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/package.dsv
+[1.127s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/ament_index/resource_index/packages/part2_navigation
+[1.128s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/cmake/part2_navigationConfig.cmake
+[1.129s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/cmake/part2_navigationConfig-version.cmake
+[1.129s] -- Up-to-date symlink: /home/student/ros2_ws/install/part2_navigation/share/part2_navigation/package.xml
+[1.203s] Listing '/home/student/ros2_ws/install/part2_navigation/local/lib/python3.10/dist-packages/part2_navigation_modules'...
+[1.217s] Invoked command in '/home/student/ros2_ws/build/part2_navigation' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/student/ros2_ws/build/part2_navigation
