@@ -45,6 +45,7 @@ install(PROGRAMS
   scripts/odom_visualizer.py
   scripts/odom_kf.py
   scripts/map_saver_client.py
+  scripts/waypoint_navigator.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
