@@ -35,11 +35,16 @@ class WaypointNavigator(Node):
         goal.pose.orientation.w = 1.0
 
         self.publisher_.publish(goal)
-        self.get_logger().info(f"Navigating to waypoint {self.current_waypoint_index + 1}: {self.waypoints[self.current_waypoint_index]}")
-        
+        self.get_logger().info(f"Sent goal to waypoint {self.current_waypoint_index + 1}: {self.waypoints[self.current_waypoint_index]}")
+
+        # Wait 8 seconds max, then move to the next
         if self.is_waypoint_reached():
             self.get_logger().info(f"Waypoint {self.current_waypoint_index + 1} reached!")
-            self.current_waypoint_index += 1
+        else:
+            self.get_logger().info(f"Waypoint {self.current_waypoint_index + 1} not reached in time, skipping ahead.")
+
+        self.current_waypoint_index += 1
+
 
     def is_waypoint_reached(self, threshold=0.4):
         wp_x, wp_y = self.waypoints[self.current_waypoint_index]
