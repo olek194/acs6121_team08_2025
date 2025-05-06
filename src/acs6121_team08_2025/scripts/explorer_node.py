@@ -136,6 +136,14 @@ class FastExplorerNode(Node):
         range_min_thresh = msg.range_min + 0.02
         range_max_thresh = msg.range_max
 
+        # Add debug info about LiDAR configuration
+        self.get_logger().debug(
+            f"LiDAR config: ranges={len(ranges)}, "
+            f"angle_min={msg.angle_min:.2f}, "
+            f"angle_max={msg.angle_max:.2f}, "
+            f"increment={angle_increment:.4f}"
+        )
+
         # Define angles in radians
         front_rad = math.radians(self.front_angle)
         front_side_rad = math.radians(self.front_side_angle)
@@ -150,8 +158,21 @@ class FastExplorerNode(Node):
         front_indices_negative = list(range(num_ranges - idx_front_delta, num_ranges))
         front_combined_indices = front_indices_positive + front_indices_negative
 
+        # Add debug info about sector indices
+        self.get_logger().debug(
+            f"Front sector indices: positive={front_indices_positive[0]}-{front_indices_positive[-1]}, "
+            f"negative={front_indices_negative[0]}-{front_indices_negative[-1]}"
+        )
+
         front_ranges = [ranges[i] for i in front_combined_indices if 0 <= i < num_ranges]
-        dist_f = min([r for r in front_ranges if range_min_thresh < r < range_max_thresh and math.isfinite(r)], default=range_max_thresh)
+        valid_ranges = [r for r in front_ranges if range_min_thresh < r < range_max_thresh and math.isfinite(r)]
+        
+        # Add debug info about valid readings
+        if len(valid_ranges) == 0:
+            self.get_logger().warn("No valid front readings!")
+            self.get_logger().debug(f"Front ranges: {front_ranges}")
+        
+        dist_f = min(valid_ranges, default=range_max_thresh)
 
         # Front-Left sector
         idx_fl_start = idx_front_delta + 1
@@ -190,26 +211,43 @@ class FastExplorerNode(Node):
 
         dist_f, dist_fl, dist_fr, dist_l, dist_r = self.get_sector_distances(msg)
 
+        # Log all distances for debugging
+        self.get_logger().debug(
+            f"Distances (m) - Front: {dist_f:.2f}, "
+            f"Front-Left: {dist_fl:.2f}, Front-Right: {dist_fr:.2f}, "
+            f"Left: {dist_l:.2f}, Right: {dist_r:.2f}"
+        )
+
         # Default to maximum speed for exploration
         target_linear_x = self.max_linear_speed
         target_angular_z = 0.0
 
-        # Obstacle avoidance logic
+        # Obstacle avoidance logic with enhanced logging
         if dist_f < self.critical_front_distance:
-            self.get_logger().warn(f"CRITICAL front obstacle: {dist_f:.2f}m. Turning.")
+            self.get_logger().warn(
+                f"CRITICAL front obstacle: {dist_f:.2f}m < {self.critical_front_distance}m. "
+                f"FL: {dist_fl:.2f}m, FR: {dist_fr:.2f}m"
+            )
             target_linear_x = 0.0
             if dist_fl > dist_fr:
                 target_angular_z = self.max_angular_speed
+                self.get_logger().info(f"Turning LEFT - more space on left ({dist_fl:.2f}m > {dist_fr:.2f}m)")
             else:
                 target_angular_z = -self.max_angular_speed
+                self.get_logger().info(f"Turning RIGHT - more space on right ({dist_fr:.2f}m > {dist_fl:.2f}m)")
 
         elif dist_f < self.warning_front_distance:
-            self.get_logger().info(f"Warning front obstacle: {dist_f:.2f}m. Slowing/Turning.")
+            self.get_logger().info(
+                f"Warning front obstacle: {dist_f:.2f}m < {self.warning_front_distance}m. "
+                f"FL: {dist_fl:.2f}m, FR: {dist_fr:.2f}m"
+            )
             target_linear_x = self.cautious_linear_speed
             if dist_fl > dist_fr:
                 target_angular_z = self.gentle_turn_speed
+                self.get_logger().debug(f"Gentle LEFT turn - more space on left ({dist_fl:.2f}m > {dist_fr:.2f}m)")
             else:
                 target_angular_z = -self.gentle_turn_speed
+                self.get_logger().debug(f"Gentle RIGHT turn - more space on right ({dist_fr:.2f}m > {dist_fl:.2f}m)")
 
         else:
             # No front obstacles - check sides
@@ -219,13 +257,25 @@ class FastExplorerNode(Node):
             if dist_l < self.side_avoid_distance:
                 error = self.side_avoid_distance - dist_l
                 side_nudge = -self.gentle_turn_speed * (error / self.side_avoid_distance) * 1.5
-                self.get_logger().debug(f"Nudging right from left wall: {dist_l:.2f}m")
+                self.get_logger().debug(
+                    f"Nudging right from left wall: {dist_l:.2f}m < {self.side_avoid_distance}m, "
+                    f"error={error:.2f}m, nudge={side_nudge:.2f}"
+                )
             elif dist_r < self.side_avoid_distance:
                 error = self.side_avoid_distance - dist_r
                 side_nudge = self.gentle_turn_speed * (error / self.side_avoid_distance) * 1.5
-                self.get_logger().debug(f"Nudging left from right wall: {dist_r:.2f}m")
+                self.get_logger().debug(
+                    f"Nudging left from right wall: {dist_r:.2f}m < {self.side_avoid_distance}m, "
+                    f"error={error:.2f}m, nudge={side_nudge:.2f}"
+                )
             
             target_angular_z = side_nudge
+
+        # Log final command
+        self.get_logger().debug(
+            f"Command: linear={target_linear_x:.2f} m/s, "
+            f"angular={target_angular_z:.2f} rad/s"
+        )
 
         # Apply velocities with limits
         self.twist.linear.x = target_linear_x
