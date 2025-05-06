@@ -4,19 +4,20 @@ import os
 from launch.actions import IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
+from launch.actions import SetEnvironmentVariable
 
 def generate_launch_description():
     return LaunchDescription([
 
-        ## START SIMULATION WORLD
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                os.path.join(
-                    get_package_share_directory("tuos_simulations"),
-                    "launch", "acs6121.launch.py"
-                )
-            )
-        ),
+        # ## START SIMULATION WORLD
+        # IncludeLaunchDescription(
+        #     PythonLaunchDescriptionSource(
+        #         os.path.join(
+        #             get_package_share_directory("tuos_simulations"),
+        #             "launch", "acs6121.launch.py"
+        #         )
+        #     )
+        # ),
 
         ## LIDAR Subscriber NODE
         # Node(
@@ -32,7 +33,7 @@ def generate_launch_description():
         #     name='odom_subscriber_2'
         # ),
 
-        ## SLAM TOOLBOX (instead of cartographer)
+        # SLAM TOOLBOX (instead of cartographer)
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(
@@ -45,20 +46,21 @@ def generate_launch_description():
        
      ## START NAVIGATION (Nav2)
     
-    
-        TimerAction(
-            period=10.0,
-            actions=[
-                IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(
-                        os.path.join(
-                            get_package_share_directory("nav2_bringup"),
-                            "launch", "navigation_launch.py"
-                        )
-                    )
+            
+        #  Set the model BEFORE launching anything
+        SetEnvironmentVariable('TURTLEBOT3_MODEL', 'waffle'),
+        
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(
+                    get_package_share_directory("turtlebot3_navigation2"),
+                    "launch", "navigation2.launch.py"
                 )
-            ]
+            ),
+            launch_arguments={'slam': 'True'}.items()
         ),
+            
+        
 
         # ## Start Map Server with a delay
         # TimerAction(
@@ -109,14 +111,17 @@ def generate_launch_description():
 
         ## WAYPOINT NAVIGATOR (Sending multiple waypoints)
         TimerAction(
-            period=15.0,  # Give time for SLAM and Nav2 to initialize
-            actions=[
+             period=5.0,
+             actions=[
                 Node(
                     package='acs6121_team08_2025',  # Replace with your package
                     executable='waypoint_navigator.py',  # Script that sends waypoints
                     name='waypoint_navigator',
                     output='screen'
-                )
-            ]
+                ),
+             ]
         ),
+            
+        
+    
     ])
