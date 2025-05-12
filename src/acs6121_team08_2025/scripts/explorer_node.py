@@ -65,18 +65,18 @@ class FastExplorerNode(Node):
         self.position_tolerance = 0.2  # Increased for faster box transitions
         
         # Obstacle avoidance parameters
-        self.critical_front_distance = 0.35  # Reduced to avoid false positives
-        self.warning_front_distance = 0.50   # Reduced to prevent early turning
+        self.critical_front_distance = 0.45  # Increased to detect obstacles earlier
+        self.warning_front_distance = 0.60   # Increased for earlier response
         
         # Speeds
         self.max_linear_speed = 0.26        # Maximum allowed linear velocity
         self.cautious_linear_speed = 0.15   # Reduced speed for obstacle avoidance
         self.max_angular_speed = 1.82       # Maximum allowed angular velocity
-        self.turn_speed = 1.5               # Single turn speed for simplicity
+        self.turn_speed = 1.82              # Increased for faster obstacle avoidance
 
         # LiDAR Sector Angles (degrees)
-        self.front_angle = 15               # Narrower front detection
-        self.front_side_angle = 35          # Narrower side detection
+        self.front_angle = 20               # Wider front detection
+        self.front_side_angle = 40          # Wider side detection
 
         # Velocity message
         self.twist = Twist()
@@ -195,13 +195,13 @@ class FastExplorerNode(Node):
 
         dist_f, dist_fl, dist_fr = self.get_sector_distances(msg)
 
-        # Only switch to avoiding if we have a clear obstacle detection
-        if dist_f < self.critical_front_distance:
+        # Check for obstacles and switch states accordingly
+        if dist_f < self.warning_front_distance:  # Changed to warning distance for earlier response
             self.current_state = ExplorationState.AVOIDING
             self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
         elif self.current_state == ExplorationState.AVOIDING:
             # Only exit avoiding state if we have clear path ahead
-            if dist_f > self.warning_front_distance and min(dist_fl, dist_fr) > self.critical_front_distance:
+            if dist_f > self.warning_front_distance + 0.1:  # Added buffer for stability
                 self.current_state = ExplorationState.NAVIGATING
                 self.update_navigation()
             else:
@@ -215,26 +215,17 @@ class FastExplorerNode(Node):
     def handle_obstacle_avoidance(self, dist_f, dist_fl, dist_fr):
         """Simple obstacle avoidance."""
         if dist_f < self.critical_front_distance:
-            # Stop and turn away from obstacle
+            # Critical distance - stop and turn quickly
             self.twist.linear.x = 0.0
-            # Choose direction with more space, with a bias towards the target
-            if abs(dist_fl - dist_fr) < 0.1:  # If spaces are similar
-                # Use target position to break the tie
-                dx = self.target_x - self.x
-                dy = self.target_y - self.y
-                target_angle = math.atan2(dy, dx)
-                angle_diff = target_angle - self.theta_z
-                while angle_diff > math.pi: angle_diff -= 2*math.pi
-                while angle_diff < -math.pi: angle_diff += 2*math.pi
-                self.twist.angular.z = self.turn_speed if angle_diff > 0 else -self.turn_speed
-            else:
-                self.twist.angular.z = self.turn_speed if dist_fl > dist_fr else -self.turn_speed
+            # Choose direction with more space
+            self.twist.angular.z = self.max_angular_speed if dist_fl > dist_fr else -self.max_angular_speed
         else:
-            # Slow down and make gentler turns while moving
+            # Warning distance - slow down and turn
             self.twist.linear.x = self.cautious_linear_speed
-            turn_factor = min((self.warning_front_distance - dist_f) / 
-                            (self.warning_front_distance - self.critical_front_distance), 1.0)
-            self.twist.angular.z = (self.turn_speed * turn_factor) if dist_fl > dist_fr else (-self.turn_speed * turn_factor)
+            # More aggressive turning
+            turn_direction = 1.0 if dist_fl > dist_fr else -1.0
+            turn_factor = (self.warning_front_distance - dist_f) / (self.warning_front_distance - self.critical_front_distance)
+            self.twist.angular.z = turn_direction * (self.turn_speed * 0.5 + self.turn_speed * 0.5 * turn_factor)
 
     def get_sector_distances(self, msg: LaserScan):
         """Get minimum distances in front sectors."""
@@ -251,17 +242,17 @@ class FastExplorerNode(Node):
         idx_front = int(front_rad / angle_increment)
         idx_side = int(front_side_rad / angle_increment)
         
-        # Get minimum distances in each sector, with averaging to reduce noise
-        front_ranges = ranges[:idx_front] + ranges[-idx_front:]
-        front_left_ranges = ranges[idx_front:idx_side]
-        front_right_ranges = ranges[-idx_side:-idx_front]
-        
-        # Filter valid readings and average the lowest few readings
-        def get_min_average(readings, num_readings=3):
+        # Get minimum distances in each sector, with minimal averaging to be more responsive
+        def get_min_average(readings, num_readings=2):  # Reduced averaging to 2 readings
             valid = sorted([r for r in readings if range_min_thresh < r < range_max_thresh and math.isfinite(r)])
             if not valid:
                 return range_max_thresh
             return sum(valid[:num_readings]) / min(len(valid), num_readings)
+        
+        # Get front ranges (both positive and negative angles)
+        front_ranges = ranges[:idx_front] + ranges[-idx_front:]
+        front_left_ranges = ranges[idx_front:idx_side]
+        front_right_ranges = ranges[-idx_side:-idx_front]
         
         dist_f = get_min_average(front_ranges)
         dist_fl = get_min_average(front_left_ranges)
