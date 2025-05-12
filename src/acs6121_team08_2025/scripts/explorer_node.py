@@ -32,9 +32,9 @@ class FastExplorerNode(Node):
         )
 
         # Timer for 90-second runtime
-        self.start_time = self.get_clock().now()  # Start timer immediately
-        self.runtime_limit = 90.0  # seconds
-        self.timer = self.create_timer(0.1, self.check_runtime)
+        # self.start_time = self.get_clock().now()  # Removed
+        # self.runtime_limit = 90.0  # Removed
+        # self.timer = self.create_timer(0.1, self.check_runtime) # Removed
         self.is_stopped = False
         self.shutdown_flag = False
 
@@ -82,26 +82,12 @@ class FastExplorerNode(Node):
         # No longer starting immediately, wait for first lidar scan
         # self.start_moving() # Removed
 
-    def start_moving(self):
-        """DEPRECATED for wall following - logic is in lidar_callback now."""
-        # This function is no longer the primary way to start movement.
-        # The state machine in lidar_callback handles initial movement.
-        self.get_logger().warn("start_moving() called, but movement is state-driven.")
-        pass # Do nothing, handled by state machine
-
-    def check_runtime(self):
-        """Check if runtime limit exceeded and stop the robot."""
-        if self.is_stopped or self.shutdown_flag:
-            return
-            
-        elapsed_time = (self.get_clock().now() - self.start_time).nanoseconds / 1e9
-        if elapsed_time >= self.runtime_limit:
-            self.get_logger().info(f"{self.runtime_limit} seconds elapsed. Stopping exploration.")
-            self.get_logger().info(f"Visited {len(self.zones_visited)} zones: {sorted(list(self.zones_visited))}")
-            self.stop_robot()
-            self.is_stopped = True
-            if self.timer is not None and not self.timer.canceled:
-                self.timer.cancel()
+    # def start_moving(self): # Keep this commented or remove if truly unused
+    #     """DEPRECATED for wall following - logic is in lidar_callback now."""
+    #     # This function is no longer the primary way to start movement.
+    #     # The state machine in lidar_callback handles initial movement.
+    #     self.get_logger().warn("start_moving() called, but movement is state-driven.")
+    #     pass # Do nothing, handled by state machine
 
     def stop_robot(self):
         """Sends a zero velocity command to stop the robot."""
@@ -322,9 +308,10 @@ class FastExplorerNode(Node):
         if not self.shutdown_flag:
             self.get_logger().info("Node shutting down. Stopping robot...")
             self.stop_robot()
-            if self.timer is not None and not self.timer.canceled:
-                self.get_logger().info("Cancelling runtime timer.")
-                self.timer.cancel()
+            # Removed timer cancellation
+            # if self.timer is not None and not self.timer.canceled:
+            #     self.get_logger().info("Cancelling runtime timer.")
+            #     self.timer.cancel()
             self.is_stopped = True
             self.shutdown_flag = True
 
