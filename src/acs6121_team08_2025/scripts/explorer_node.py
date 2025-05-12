@@ -15,7 +15,6 @@ class ExplorationState(Enum):
     NAVIGATING = auto()       # Moving to target
     AVOIDING = auto()         # Avoiding obstacles
     TURNING = auto()          # Executing 180-degree turn
-    RECOVERING = auto()       # Returning to exploration path
 
 class FastExplorerNode(Node):
 
@@ -88,8 +87,10 @@ class FastExplorerNode(Node):
         self.timer = self.create_timer(0.1, self.timer_callback)  # 10Hz timer
         
         self.get_logger().info("Starting exploration - searching for open space!")
-        self.set_next_target()
-
+        if not self.set_next_target():
+            self.get_logger().error("Failed to set initial target. Stopping.")
+            self.stop_robot() # Ensure we stop if no initial target
+        
         # Corner boxes that need 180-degree turn
         self.corner_boxes = {1, 4, 13, 16}
         
@@ -138,46 +139,37 @@ class FastExplorerNode(Node):
     def update_navigation(self):
         """Update navigation state and set appropriate velocities."""
         current_box = self.get_current_box()
-        
-        # Calculate distance to current target
-        if self.current_state == ExplorationState.RECOVERING:
-            dx = self.recovery_target_x - self.x
-            dy = self.recovery_target_y - self.y
-        else:
-            dx = self.target_x - self.x
-            dy = self.target_y - self.y
-        
+        dx = self.target_x - self.x
+        dy = self.target_y - self.y
         distance = math.sqrt(dx*dx + dy*dy)
-        
-        # Mark current box as visited if we're close enough
-        if current_box in self.boxes_to_explore and current_box not in self.visited_boxes:
-            if distance < self.position_tolerance:
-                self.visited_boxes.add(current_box)
-                self.get_logger().info(f"Visited box {current_box}. Total boxes visited: {len(self.visited_boxes)}")
-                
-                # If we're in a corner box, initiate 180-degree turn
-                if current_box in self.corner_boxes:
-                    self.get_logger().info("Corner box reached - initiating 180-degree turn")
-                    self.current_state = ExplorationState.TURNING
-                    self.turn_start_angle = self.theta_z
-                    self.turn_target_angle = self.normalize_angle(self.theta_z + math.pi)
-                    return
-                
-                # Set next target and continue
-                if self.set_next_target():
-                    self.current_state = ExplorationState.NAVIGATING
+
+        # Check if we have reached the current target box's center
+        if distance < self.position_tolerance:
+            self.get_logger().info(f"Reached target Box {self.target_box} at ({self.target_x:.2f}, {self.target_y:.2f}). Current actual box: {current_box}")
+
+            # Mark as visited if it's an exploration target and not yet visited
+            if self.target_box in self.boxes_to_explore and self.target_box not in self.visited_boxes:
+                self.visited_boxes.add(self.target_box)
+                self.get_logger().info(f"Visited box {self.target_box}. Total boxes visited: {len(self.visited_boxes)}")
+
+            if self.target_box in self.corner_boxes:
+                self.get_logger().info(f"Target box {self.target_box} is a corner. Initiating 180-degree turn.")
+                self.current_state = ExplorationState.TURNING
+                self.turn_start_angle = self.theta_z
+                self.turn_target_angle = self.normalize_angle(self.theta_z + math.pi)
+                self.twist.linear.x = 0.0 
+                self.twist.angular.z = 0.0 
                 return
-        
-        # Handle recovery completion
-        if self.current_state == ExplorationState.RECOVERING and distance < self.position_tolerance:
-            self.get_logger().info("Recovery complete - resuming normal navigation")
-            self.current_state = ExplorationState.NAVIGATING
-            if not self.set_next_target():
+
+            if self.set_next_target():
+                self.current_state = ExplorationState.NAVIGATING
+            else: 
+                self.get_logger().info("All targets processed or no new target set.")
                 self.stop_robot()
-            return
-        
-        # Continue moving to target
-        self.move_to_target(dx, dy, distance)
+            return 
+
+        if self.current_state == ExplorationState.NAVIGATING:
+            self.move_to_target(dx, dy, distance)
 
     def move_to_target(self, dx, dy, distance):
         """Move directly towards target."""
@@ -225,21 +217,16 @@ class FastExplorerNode(Node):
         if self.current_state == ExplorationState.FINDING_SPACE:
             self.handle_space_finding(dist_f, dist_fl, dist_fr)
         elif self.current_state == ExplorationState.NAVIGATING:
-            if dist_f < (0.45 + self.robot_radius):  # Only avoid very close obstacles
+            if dist_f < (0.45 + self.robot_radius):  # Obstacle detected
+                self.get_logger().info("Obstacle detected while NAVIGATING. Switching to AVOIDING.")
                 self.current_state = ExplorationState.AVOIDING
-                self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
+                self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr) # Set initial avoidance twist
             else:
                 self.update_navigation()
         elif self.current_state == ExplorationState.AVOIDING:
             self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
         elif self.current_state == ExplorationState.TURNING:
             self.handle_turning()
-        elif self.current_state == ExplorationState.RECOVERING:
-            if dist_f < (0.45 + self.robot_radius):  # Obstacle during recovery
-                self.current_state = ExplorationState.AVOIDING
-                self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
-            else:
-                self.update_navigation()
 
         self.cmd_vel_pub.publish(self.twist)
 
@@ -259,48 +246,26 @@ class FastExplorerNode(Node):
             self.twist.angular.z = self.search_turn_speed
 
     def handle_obstacle_avoidance(self, dist_f, dist_fl, dist_fr):
-        """Enhanced obstacle avoidance with path recovery."""
-        # Check if we were previously avoiding
-        was_avoiding = (self.current_state == ExplorationState.AVOIDING)
-        
-        # If we find open space while avoiding, enter recovery
-        # Require front and at least one side to be clear enough to proceed
-        if dist_f > self.open_space_threshold and max(dist_fl, dist_fr) > (0.5 + self.robot_radius): # Check if sides have enough clearance
-            if was_avoiding:
-                self.get_logger().info("Found open space - entering recovery mode")
-                self.current_state = ExplorationState.RECOVERING
-                # Set recovery velocity - move forward cautiously
-                self.twist.linear.x = self.cautious_linear_speed
-                self.twist.angular.z = 0.0
-            else:
-                 # Store current target for recovery if just entering avoid state
-                 self.recovery_target_x = self.target_x
-                 self.recovery_target_y = self.target_y
-                 self.pre_avoid_state = self.current_state
-                 self.current_state = ExplorationState.AVOIDING # Ensure we are in AVOIDING state
-                 # Start turning immediately
-                 self.twist.linear.x = 0.0
-                 turn_direction = 1 if dist_fl > dist_fr else -1
-                 self.twist.angular.z = turn_direction * self.search_turn_speed # Use search turn speed
+        """Avoid obstacle and then resume navigation to current target."""
+        self.get_logger().debug(f"AVOIDING: F:{dist_f:.2f} FL:{dist_fl:.2f} FR:{dist_fr:.2f}")
+
+        # Check if we can exit AVOIDING state
+        # Condition: Front is clear AND at least one side is clear enough to maneuver
+        if dist_f > self.open_space_threshold and \
+           (dist_fl > (self.robot_radius + 0.3) or dist_fr > (self.robot_radius + 0.3)):
+
+            self.get_logger().info("Obstacle cleared. Switching to NAVIGATING to current target.")
+            self.current_state = ExplorationState.NAVIGATING
+            self.twist.linear.x = self.cautious_linear_speed 
+            self.twist.angular.z = 0.0 
             return
-            
-        # If still avoiding (no clear path found yet)
-        if not was_avoiding: # Store recovery target if just entered AVOIDING
-            self.recovery_target_x = self.target_x
-            self.recovery_target_y = self.target_y
-            self.pre_avoid_state = self.current_state
-            self.current_state = ExplorationState.AVOIDING
-            
-        self.get_logger().info(f"Avoiding obstacle: F:{dist_f:.2f} FL:{dist_fl:.2f} FR:{dist_fr:.2f}")
-        self.twist.linear.x = 0.0 # Stop forward motion while turning
-        
-        # Turn in direction with more space using a consistent speed
+
+        self.twist.linear.x = 0.0
         turn_direction = 1 if dist_fl > dist_fr else -1
-        # If distances are very close, prefer turning left slightly (arbitrary tie-break)
         if abs(dist_fl - dist_fr) < 0.1: 
-            turn_direction = 1
-            
-        self.twist.angular.z = turn_direction * self.search_turn_speed # Use a moderate, consistent turn speed
+            turn_direction = 1 
+        self.twist.angular.z = turn_direction * self.search_turn_speed
+        self.get_logger().debug(f"Still avoiding. Turning: {self.twist.angular.z:.2f}")
 
     def get_sector_distances(self, msg: LaserScan):
         """Get minimum distances in front sectors using simple minimum."""
