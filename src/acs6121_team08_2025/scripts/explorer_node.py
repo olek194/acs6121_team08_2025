@@ -153,12 +153,21 @@ class FastExplorerNode(Node):
         # Calculate target angle
         target_angle = math.atan2(dy, dx)
         
-        # Set maximum speed when far, reduce speed when closer
-        speed = self.max_linear_speed if distance > 0.5 else self.max_linear_speed * (distance / 0.5)
+        # Calculate angle difference
+        angle_diff = target_angle - self.theta_z
+        # Normalize to [-pi, pi]
+        while angle_diff > math.pi:
+            angle_diff -= 2 * math.pi
+        while angle_diff < -math.pi:
+            angle_diff += 2 * math.pi
+            
+        # Always move forward, adjust turning based on angle difference
+        self.twist.linear.x = self.max_linear_speed
         
-        # Set velocities for direct movement
-        self.twist.linear.x = speed
-        self.twist.angular.z = target_angle * 2.0  # Simple proportional control
+        # Proportional control for turning, max at 90 degrees
+        turn_factor = min(abs(angle_diff) / (math.pi/2), 1.0)
+        turn_direction = 1.0 if angle_diff > 0 else -1.0
+        self.twist.angular.z = turn_direction * self.max_angular_speed * turn_factor
 
     def odom_callback(self, msg: Odometry):
         """Update robot's position and orientation."""
