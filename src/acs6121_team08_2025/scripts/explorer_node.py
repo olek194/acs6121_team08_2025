@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
-# Optimized exploration node for TurtleBot3 Waffle - Focus on Speed and Zone Coverage
+# Optimized exploration node for TurtleBot3 Waffle - Focus on outer box exploration
 
 import rclpy
 from rclpy.node import Node
 from rclpy.signals import SignalHandlerOptions
 from geometry_msgs.msg import Twist
-from nav_msgs.msg import Odometry  # Added for position tracking
+from nav_msgs.msg import Odometry
 from sensor_msgs.msg import LaserScan
 import math
+from enum import Enum, auto
+
+class ExplorationState(Enum):
+    INIT = auto()           # Initial state, moving to first position
+    NAVIGATING = auto()     # Moving to next target
+    ROTATING = auto()       # Rotating to align with next target
+    AVOIDING = auto()       # Avoiding obstacles
 
 class FastExplorerNode(Node):
 
@@ -25,98 +32,221 @@ class FastExplorerNode(Node):
             Odometry, "odom", self.odom_callback, 10
         )
 
-        # Removed Timer logic
-        # self.start_time = self.get_clock().now()  # Start timer immediately
-        # self.runtime_limit = 90.0  # seconds
-        # self.timer = self.create_timer(0.1, self.check_runtime)
-        # self.is_stopped = False
         self.shutdown_flag = False
 
-        # Position tracking (similar to move_square.py)
+        # Position tracking
         self.x = 0.0
         self.y = 0.0
         self.theta_z = 0.0
         
-        # Arena zones tracking
-        self.arena_size_x = 4.0  # meters (assumed)
-        self.arena_size_y = 4.0  # meters (assumed)
-        self.zones_visited = set()  # Track visited zones
-        self.current_zone = None
+        # Arena configuration
+        self.box_size = 1.0  # 1x1 meter boxes
+        self.arena_size_x = 4.0
+        self.arena_size_y = 4.0
         
-        # Velocity message
-        self.twist = Twist()
+        # Path planning
+        self.current_state = ExplorationState.INIT
+        self.target_box = 0
+        self.boxes_to_explore = [1,2,3,4,5,8,9,12,13,14,15,16]  # Outer boxes only
+        self.visited_boxes = set()
+        self.inner_boxes = {6,7,10,11}  # Boxes to avoid
+        
+        # Box center positions (x,y) relative to arena center
+        self.box_positions = {
+            1: (-1.5, 1.5),   2: (-0.5, 1.5),   3: (0.5, 1.5),   4: (1.5, 1.5),
+            5: (-1.5, 0.5),   6: (-0.5, 0.5),   7: (0.5, 0.5),   8: (1.5, 0.5),
+            9: (-1.5, -0.5), 10: (-0.5, -0.5), 11: (0.5, -0.5), 12: (1.5, -0.5),
+            13: (-1.5, -1.5), 14: (-0.5, -1.5), 15: (0.5, -1.5), 16: (1.5, -1.5)
+        }
+        
+        # Current target position
+        self.target_x = 0.0
+        self.target_y = 0.0
+        
+        # Navigation parameters
+        self.position_tolerance = 0.1  # meters
+        self.angle_tolerance = 0.1     # radians
+        self.target_heading = 0.0
 
-        # --- Tunable Parameters ---
-        # Distances (meters)
-        self.critical_front_distance = 0.60  # Increased to account for robot width and safety margin
-        self.warning_front_distance = 0.90   # Increased to start avoiding earlier
-        self.side_avoid_distance = 0.55      # Increased side clearance
-        self.min_clearance = 0.50           # Minimum required clearance from obstacles
+        # Tunable Parameters
+        self.critical_front_distance = 0.60
+        self.warning_front_distance = 0.90
+        self.side_avoid_distance = 0.55
+        self.min_clearance = 0.50
 
         # Speeds
         self.max_linear_speed = 0.28
-        self.cautious_linear_speed = 0.15    # Reduced for more controlled avoidance
+        self.cautious_linear_speed = 0.15
         self.max_angular_speed = 1.9
-        self.gentle_turn_speed = 1.2         # Increased for more responsive turning
+        self.gentle_turn_speed = 1.2
 
         # LiDAR Sector Angles (degrees)
-        self.front_angle = 20                # Widened front detection angle
-        self.front_side_angle = 50           # Increased to better detect obstacles during turns
+        self.front_angle = 20
+        self.front_side_angle = 50
         self.side_angle_start = 50
         self.side_angle_end = 130
 
-        self.get_logger().info(f"'{self.get_name()}' node initialized.")
+        # Velocity message
+        self.twist = Twist()
         
-        # Start moving immediately
-        self.start_moving()
+        self.get_logger().info("Starting exploration from center position!")
+        self.set_next_target()
 
-    def start_moving(self):
-        """Start the robot moving forward."""
-        self.twist.linear.x = self.max_linear_speed
-        self.twist.angular.z = 0.0
-        self.cmd_vel_pub.publish(self.twist)
-        self.get_logger().info("Starting exploration!")
+    def set_next_target(self):
+        """Set the next target box to explore."""
+        # If we've visited all boxes, we're done
+        if len(self.visited_boxes) >= len(self.boxes_to_explore):
+            self.get_logger().info("Exploration complete! All outer boxes visited.")
+            self.stop_robot()
+            return False
 
-    def stop_robot(self):
-        """Sends a zero velocity command to stop the robot."""
-        self.twist.linear.x = 0.0
-        self.twist.angular.z = 0.0
-        self.cmd_vel_pub.publish(self.twist)
-        self.get_logger().info("Robot stopped.")
-
-    def get_current_zone(self):
-        """Calculate which zone the robot is in (1-16, numbered left-to-right, top-to-bottom)."""
-        # Assuming arena is 4x4m and divided into 16 1x1m squares
-        # Normalize coordinates to 0-4 range and calculate zone
-        x_norm = (self.x + self.arena_size_x/2) / self.arena_size_x * 4
-        y_norm = (self.arena_size_y/2 - self.y) / self.arena_size_y * 4
+        # Get next unvisited box
+        for box in self.boxes_to_explore:
+            if box not in self.visited_boxes:
+                self.target_box = box
+                self.target_x, self.target_y = self.box_positions[box]
+                self.get_logger().info(f"Setting new target: Box {box} at ({self.target_x:.2f}, {self.target_y:.2f})")
+                return True
         
-        # Ensure coordinates are within bounds
-        x_norm = max(0, min(3.99, x_norm))
-        y_norm = max(0, min(3.99, y_norm))
+        return False
+
+    def get_current_box(self):
+        """Calculate which box the robot is in."""
+        # Normalize coordinates to box grid
+        x_norm = (self.x + self.arena_size_x/2) / self.box_size
+        y_norm = (self.arena_size_y/2 - self.y) / self.box_size
         
-        # Calculate zone number (1-16)
+        # Calculate box number (1-16)
         col = int(x_norm)
         row = int(y_norm)
-        zone = row * 4 + col + 1
+        box = row * 4 + col + 1
         
-        return zone
+        return box
+
+    def update_navigation(self):
+        """Update navigation state and set appropriate velocities."""
+        current_box = self.get_current_box()
+        
+        # Mark current box as visited if it's in our target list
+        if current_box in self.boxes_to_explore and current_box not in self.visited_boxes:
+            self.visited_boxes.add(current_box)
+            self.get_logger().info(f"Visited box {current_box}. Total boxes visited: {len(self.visited_boxes)}")
+            self.set_next_target()
+
+        # Calculate distance and angle to target
+        dx = self.target_x - self.x
+        dy = self.target_y - self.y
+        distance = math.sqrt(dx*dx + dy*dy)
+        target_angle = math.atan2(dy, dx)
+        
+        # Normalize angle difference to [-pi, pi]
+        angle_diff = target_angle - self.theta_z
+        while angle_diff > math.pi: angle_diff -= 2*math.pi
+        while angle_diff < -math.pi: angle_diff += 2*math.pi
+
+        # State machine for navigation
+        if self.current_state == ExplorationState.INIT:
+            if abs(angle_diff) > self.angle_tolerance:
+                self.rotate_to_target(angle_diff)
+            else:
+                self.current_state = ExplorationState.NAVIGATING
+                
+        elif self.current_state == ExplorationState.NAVIGATING:
+            if distance < self.position_tolerance:
+                self.set_next_target()
+            elif abs(angle_diff) > self.angle_tolerance * 2:
+                self.current_state = ExplorationState.ROTATING
+            else:
+                self.move_to_target(distance, angle_diff)
+                
+        elif self.current_state == ExplorationState.ROTATING:
+            if abs(angle_diff) < self.angle_tolerance:
+                self.current_state = ExplorationState.NAVIGATING
+            else:
+                self.rotate_to_target(angle_diff)
+
+        return distance, angle_diff
+
+    def rotate_to_target(self, angle_diff):
+        """Rotate towards target angle."""
+        self.twist.linear.x = 0.0
+        self.twist.angular.z = max(-self.max_angular_speed, 
+                                 min(self.max_angular_speed, angle_diff))
+
+    def move_to_target(self, distance, angle_diff):
+        """Move towards target position."""
+        # Scale linear speed based on distance and angle
+        speed_factor = min(1.0, distance / 0.5)  # Slow down when close
+        angle_factor = max(0.0, 1.0 - abs(angle_diff))  # Slow down when not aligned
+        
+        self.twist.linear.x = self.max_linear_speed * speed_factor * angle_factor
+        self.twist.angular.z = max(-self.gentle_turn_speed, 
+                                 min(self.gentle_turn_speed, angle_diff))
 
     def odom_callback(self, msg: Odometry):
-        """Track robot position and update zone information."""
-        # Update position
+        """Update robot's position and orientation."""
         self.x = msg.pose.pose.position.x
         self.y = msg.pose.pose.position.y
         
-        # Update zone tracking
-        new_zone = self.get_current_zone()
-        if new_zone != self.current_zone:
-            self.current_zone = new_zone
-            self.zones_visited.add(new_zone)
-            self.get_logger().info(f"Entered zone {new_zone}. Total zones visited: {len(self.zones_visited)}")
+        # Extract yaw from quaternion
+        qx = msg.pose.pose.orientation.x
+        qy = msg.pose.pose.orientation.y
+        qz = msg.pose.pose.orientation.z
+        qw = msg.pose.pose.orientation.w
+        
+        # Convert quaternion to Euler angles
+        siny_cosp = 2.0 * (qw * qz + qx * qy)
+        cosy_cosp = 1.0 - 2.0 * (qy * qy + qz * qz)
+        self.theta_z = math.atan2(siny_cosp, cosy_cosp)
+        
+        # Update navigation if not in obstacle avoidance
+        if self.current_state != ExplorationState.AVOIDING:
+            self.update_navigation()
+
+    def lidar_callback(self, msg: LaserScan):
+        """Handle obstacle avoidance during navigation."""
+        if self.shutdown_flag:
+            return
+
+        dist_f, dist_fl, dist_fr, dist_l, dist_r = self.get_sector_distances(msg)
+
+        # Check if we need to avoid obstacles
+        if dist_f < self.critical_front_distance or dist_f < self.warning_front_distance:
+            self.current_state = ExplorationState.AVOIDING
+            self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr, dist_l, dist_r)
+        elif self.current_state == ExplorationState.AVOIDING:
+            # Return to normal navigation
+            self.current_state = ExplorationState.NAVIGATING
+            self.update_navigation()
+
+        self.cmd_vel_pub.publish(self.twist)
+
+    def handle_obstacle_avoidance(self, dist_f, dist_fl, dist_fr, dist_l, dist_r):
+        """Handle obstacle avoidance logic."""
+        if dist_f < self.critical_front_distance:
+            # Critical front obstacle - stop and turn
+            self.twist.linear.x = 0.0
+            fl_clearance = dist_fl - self.min_clearance
+            fr_clearance = dist_fr - self.min_clearance
+            
+            if fl_clearance > fr_clearance and dist_fl > self.min_clearance:
+                self.twist.angular.z = self.max_angular_speed
+            else:
+                self.twist.angular.z = -self.max_angular_speed
+                
+        elif dist_f < self.warning_front_distance:
+            # Warning distance - slow down and start turning
+            self.twist.linear.x = self.cautious_linear_speed
+            distance_factor = (self.warning_front_distance - dist_f) / (self.warning_front_distance - self.critical_front_distance)
+            turn_speed = self.gentle_turn_speed + (self.max_angular_speed - self.gentle_turn_speed) * distance_factor
+            
+            if dist_fl > dist_fr and dist_fl > self.min_clearance:
+                self.twist.angular.z = turn_speed
+            else:
+                self.twist.angular.z = -turn_speed
 
     def get_sector_distances(self, msg: LaserScan):
-        """ Get minimum distances in key sectors using angles """
+        """Get minimum distances in key sectors."""
         ranges = msg.ranges
         angle_increment = msg.angle_increment
         num_ranges = len(ranges)
@@ -191,102 +321,15 @@ class FastExplorerNode(Node):
 
         return dist_f, dist_fl, dist_fr, dist_l, dist_r
 
-    def lidar_callback(self, msg: LaserScan):
-        """Main control loop for obstacle avoidance and exploration."""
-        if self.shutdown_flag:
-            return
-
-        dist_f, dist_fl, dist_fr, dist_l, dist_r = self.get_sector_distances(msg)
-
-        # Log all distances for debugging
-        self.get_logger().debug(
-            f"Distances (m) - Front: {dist_f:.2f}, "
-            f"Front-Left: {dist_fl:.2f}, Front-Right: {dist_fr:.2f}, "
-            f"Left: {dist_l:.2f}, Right: {dist_r:.2f}"
-        )
-
-        # Default to maximum speed for exploration
-        target_linear_x = self.max_linear_speed
-        target_angular_z = 0.0
-
-        # Enhanced obstacle avoidance logic
-        if dist_f < self.critical_front_distance:
-            self.get_logger().warn(
-                f"CRITICAL front obstacle: {dist_f:.2f}m < {self.critical_front_distance}m. "
-                f"FL: {dist_fl:.2f}m, FR: {dist_fr:.2f}m"
-            )
-            # Stop and make a sharp turn
-            target_linear_x = 0.0
-            
-            # Choose turn direction based on which side has more clearance
-            # Add extra weight to the side that provides more than minimum clearance
-            fl_clearance = dist_fl - self.min_clearance
-            fr_clearance = dist_fr - self.min_clearance
-            
-            if fl_clearance > fr_clearance and dist_fl > self.min_clearance:
-                target_angular_z = self.max_angular_speed
-                self.get_logger().info(f"Sharp LEFT turn - clearance on left: {fl_clearance:.2f}m")
-            else:
-                target_angular_z = -self.max_angular_speed
-                self.get_logger().info(f"Sharp RIGHT turn - clearance on right: {fr_clearance:.2f}m")
-
-        elif dist_f < self.warning_front_distance:
-            self.get_logger().info(
-                f"Warning front obstacle: {dist_f:.2f}m < {self.warning_front_distance}m. "
-                f"FL: {dist_fl:.2f}m, FR: {dist_fr:.2f}m"
-            )
-            # Reduce speed and start turning preemptively
-            target_linear_x = self.cautious_linear_speed
-            
-            # Calculate turn intensity based on how close we are to the obstacle
-            distance_factor = (self.warning_front_distance - dist_f) / (self.warning_front_distance - self.critical_front_distance)
-            turn_speed = self.gentle_turn_speed + (self.max_angular_speed - self.gentle_turn_speed) * distance_factor
-            
-            # Choose turn direction ensuring minimum clearance
-            if dist_fl > dist_fr and dist_fl > self.min_clearance:
-                target_angular_z = turn_speed
-                self.get_logger().debug(f"Preemptive LEFT turn - clearance: {dist_fl:.2f}m")
-            else:
-                target_angular_z = -turn_speed
-                self.get_logger().debug(f"Preemptive RIGHT turn - clearance: {dist_fr:.2f}m")
-
-        else:
-            # No front obstacles - check sides
-            target_linear_x = self.max_linear_speed
-            side_nudge = 0.0
-            
-            # Enhanced side avoidance to maintain minimum clearance
-            if dist_l < self.side_avoid_distance:
-                error = self.side_avoid_distance - dist_l
-                side_nudge = -self.gentle_turn_speed * (error / self.side_avoid_distance) * 2.0  # Increased correction factor
-                self.get_logger().debug(
-                    f"Strong right nudge from left wall: {dist_l:.2f}m < {self.side_avoid_distance}m, "
-                    f"error={error:.2f}m, nudge={side_nudge:.2f}"
-                )
-            elif dist_r < self.side_avoid_distance:
-                error = self.side_avoid_distance - dist_r
-                side_nudge = self.gentle_turn_speed * (error / self.side_avoid_distance) * 2.0  # Increased correction factor
-                self.get_logger().debug(
-                    f"Strong left nudge from right wall: {dist_r:.2f}m < {self.side_avoid_distance}m, "
-                    f"error={error:.2f}m, nudge={side_nudge:.2f}"
-                )
-            
-            target_angular_z = side_nudge
-
-        # Log final command
-        self.get_logger().debug(
-            f"Command: linear={target_linear_x:.2f} m/s, "
-            f"angular={target_angular_z:.2f} rad/s"
-        )
-
-        # Apply velocities with limits
-        self.twist.linear.x = target_linear_x
-        self.twist.angular.z = max(-self.max_angular_speed, min(target_angular_z, self.max_angular_speed))
-
+    def stop_robot(self):
+        """Stop the robot."""
+        self.twist.linear.x = 0.0
+        self.twist.angular.z = 0.0
         self.cmd_vel_pub.publish(self.twist)
+        self.get_logger().info("Robot stopped.")
 
     def on_shutdown(self):
-        """Ensure robot stops and timers are cancelled when node is shut down."""
+        """Handle shutdown."""
         if not self.shutdown_flag:
             self.get_logger().info("Node shutting down. Stopping robot...")
             self.stop_robot()
