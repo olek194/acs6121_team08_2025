@@ -49,7 +49,6 @@ class FastExplorerNode(Node):
         self.target_box = 0
         self.boxes_to_explore = [1,2,3,4,5,8,9,12,13,14,15,16]  # Outer boxes only
         self.visited_boxes = set()
-        self.inner_boxes = {6,7,10,11}  # Boxes to avoid
         
         # Box center positions (x,y) relative to arena center
         self.box_positions = {
@@ -63,20 +62,20 @@ class FastExplorerNode(Node):
         self.target_x = 0.0
         self.target_y = 0.0
         
-        # Navigation parameters
-        self.position_tolerance = 0.1  # meters
-        self.angle_tolerance = 0.1     # radians
+        # Navigation parameters - adjusted for more efficient movement
+        self.position_tolerance = 0.15  # Increased tolerance for faster transitions
+        self.angle_tolerance = 0.15     # Increased angle tolerance
         self.target_heading = 0.0
 
-        # Tunable Parameters
-        self.critical_front_distance = 0.60
-        self.warning_front_distance = 0.90
-        self.side_avoid_distance = 0.55
-        self.min_clearance = 0.50
+        # Tunable Parameters - adjusted for smoother movement through inner boxes
+        self.critical_front_distance = 0.50  # Reduced since we don't need to be as cautious
+        self.warning_front_distance = 0.70   # Reduced for more direct paths
+        self.side_avoid_distance = 0.45      # Reduced side clearance
+        self.min_clearance = 0.40           # Reduced minimum clearance
 
-        # Speeds
-        self.max_linear_speed = 0.28
-        self.cautious_linear_speed = 0.15
+        # Speeds - adjusted for faster movement
+        self.max_linear_speed = 0.30        # Slightly increased
+        self.cautious_linear_speed = 0.18   # Increased for faster obstacle passing
         self.max_angular_speed = 1.9
         self.gentle_turn_speed = 1.2
 
@@ -100,13 +99,28 @@ class FastExplorerNode(Node):
             self.stop_robot()
             return False
 
-        # Get next unvisited box
+        # Get next unvisited box - now using a more efficient path
+        current_box = self.get_current_box()
+        min_distance = float('inf')
+        next_box = None
+
+        # Find the closest unvisited box
         for box in self.boxes_to_explore:
             if box not in self.visited_boxes:
-                self.target_box = box
-                self.target_x, self.target_y = self.box_positions[box]
-                self.get_logger().info(f"Setting new target: Box {box} at ({self.target_x:.2f}, {self.target_y:.2f})")
-                return True
+                box_x, box_y = self.box_positions[box]
+                dx = box_x - self.x
+                dy = box_y - self.y
+                distance = math.sqrt(dx*dx + dy*dy)
+                
+                if distance < min_distance:
+                    min_distance = distance
+                    next_box = box
+
+        if next_box:
+            self.target_box = next_box
+            self.target_x, self.target_y = self.box_positions[next_box]
+            self.get_logger().info(f"Setting new target: Box {next_box} at ({self.target_x:.2f}, {self.target_y:.2f})")
+            return True
         
         return False
 
@@ -179,9 +193,14 @@ class FastExplorerNode(Node):
         speed_factor = min(1.0, distance / 0.5)  # Slow down when close
         angle_factor = max(0.0, 1.0 - abs(angle_diff))  # Slow down when not aligned
         
+        # More aggressive movement when far from target
+        if distance > 1.0:
+            speed_factor = 1.0
+            angle_factor = max(0.3, angle_factor)  # Maintain some forward motion while turning
+        
         self.twist.linear.x = self.max_linear_speed * speed_factor * angle_factor
         self.twist.angular.z = max(-self.gentle_turn_speed, 
-                                 min(self.gentle_turn_speed, angle_diff))
+                                min(self.gentle_turn_speed, angle_diff))
 
     def odom_callback(self, msg: Odometry):
         """Update robot's position and orientation."""
@@ -226,10 +245,9 @@ class FastExplorerNode(Node):
         if dist_f < self.critical_front_distance:
             # Critical front obstacle - stop and turn
             self.twist.linear.x = 0.0
-            fl_clearance = dist_fl - self.min_clearance
-            fr_clearance = dist_fr - self.min_clearance
             
-            if fl_clearance > fr_clearance and dist_fl > self.min_clearance:
+            # Simplified turning decision - just turn in the direction with more space
+            if dist_fl > dist_fr:
                 self.twist.angular.z = self.max_angular_speed
             else:
                 self.twist.angular.z = -self.max_angular_speed
@@ -240,7 +258,8 @@ class FastExplorerNode(Node):
             distance_factor = (self.warning_front_distance - dist_f) / (self.warning_front_distance - self.critical_front_distance)
             turn_speed = self.gentle_turn_speed + (self.max_angular_speed - self.gentle_turn_speed) * distance_factor
             
-            if dist_fl > dist_fr and dist_fl > self.min_clearance:
+            # Simplified turning decision
+            if dist_fl > dist_fr:
                 self.twist.angular.z = turn_speed
             else:
                 self.twist.angular.z = -turn_speed
