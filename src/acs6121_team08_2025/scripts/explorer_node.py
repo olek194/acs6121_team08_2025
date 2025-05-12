@@ -95,21 +95,12 @@ class FastExplorerNode(Node):
             self.stop_robot()
             return False
 
-        # Find the closest unvisited box
-        current_box = self.get_current_box()
-        min_distance = float('inf')
+        # Find the next unvisited box in numerical order
         next_box = None
-
-        for box in self.boxes_to_explore:
+        for box in self.boxes_to_explore:  # boxes_to_explore is already in numerical order
             if box not in self.visited_boxes:
-                box_x, box_y = self.box_positions[box]
-                dx = box_x - self.x
-                dy = box_y - self.y
-                distance = math.sqrt(dx*dx + dy*dy)
-                
-                if distance < min_distance:
-                    min_distance = distance
-                    next_box = box
+                next_box = box
+                break
 
         if next_box:
             self.target_box = next_box
