@@ -218,11 +218,10 @@ class FastExplorerNode(Node):
             f"Left: {dist_l:.2f}, Right: {dist_r:.2f}"
         )
 
-        # Default to maximum speed for exploration
         target_linear_x = self.max_linear_speed
         target_angular_z = 0.0
 
-        # Obstacle avoidance logic with enhanced logging
+        # --- Obstacle Avoidance Logic (Priority 1) ---
         if dist_f < self.critical_front_distance:
             self.get_logger().warn(
                 f"CRITICAL front obstacle: {dist_f:.2f}m < {self.critical_front_distance}m. "
@@ -249,37 +248,59 @@ class FastExplorerNode(Node):
                 target_angular_z = -self.gentle_turn_speed
                 self.get_logger().debug(f"Gentle RIGHT turn - more space on right ({dist_fr:.2f}m > {dist_fl:.2f}m)")
 
+        # --- Wall Following Logic (Priority 2 - When Front is Clear) ---
         else:
-            # No front obstacles - check sides
-            target_linear_x = self.max_linear_speed
-            side_nudge = 0.0
-            
-            if dist_l < self.side_avoid_distance:
-                error = self.side_avoid_distance - dist_l
-                side_nudge = -self.gentle_turn_speed * (error / self.side_avoid_distance) * 1.5
-                self.get_logger().debug(
-                    f"Nudging right from left wall: {dist_l:.2f}m < {self.side_avoid_distance}m, "
-                    f"error={error:.2f}m, nudge={side_nudge:.2f}"
-                )
-            elif dist_r < self.side_avoid_distance:
-                error = self.side_avoid_distance - dist_r
-                side_nudge = self.gentle_turn_speed * (error / self.side_avoid_distance) * 1.5
-                self.get_logger().debug(
-                    f"Nudging left from right wall: {dist_r:.2f}m < {self.side_avoid_distance}m, "
-                    f"error={error:.2f}m, nudge={side_nudge:.2f}"
-                )
-            
-            target_angular_z = side_nudge
+            target_linear_x = self.max_linear_speed # Go forward
+            target_angular_z = 0.0 # Default no turn
 
-        # Log final command
+            # Define target distance for right wall following
+            target_wall_distance = self.side_avoid_distance + 0.15 # Target slightly further than critical avoid distance
+            wall_follow_gain = 1.5 # Proportional gain for adjustment
+
+            # Check if we have a somewhat reliable reading for the right wall
+            if dist_r < (msg.range_max * 0.8): # Check if right wall detected within 80% of max range
+                error = target_wall_distance - dist_r
+                # Proportional control: positive error means too far -> turn right (-ve angular_z)
+                # Negative error means too close -> turn left (+ve angular_z)
+                target_angular_z = wall_follow_gain * error
+                self.get_logger().debug(
+                    f"Wall Following (Right): dist_r={dist_r:.2f}m, target={target_wall_distance:.2f}m, "
+                    f"error={error:.2f}m, angular_z={target_angular_z:.2f}"
+                )
+            else:
+                # Lost the right wall, gently turn right to find it
+                target_angular_z = -self.gentle_turn_speed * 0.5 # Negative for right turn
+                self.get_logger().debug(f"Lost right wall (dist_r={dist_r:.2f}m), turning right gently ({target_angular_z:.2f})")
+
+            # --- Left Wall Safety Check (Priority 3 - Override wall following if needed) ---
+            # Even if following right wall, avoid hitting the left wall if too close
+            if dist_l < self.side_avoid_distance:
+                # If too close to left wall, prioritize turning away from it (right turn)
+                # Calculate a stronger nudge away from the left wall
+                error_l = self.side_avoid_distance - dist_l
+                left_nudge_angular_z = -self.gentle_turn_speed * (error_l / self.side_avoid_distance) * 2.0 # Stronger nudge right
+                self.get_logger().warn(
+                    f"LEFT WALL TOO CLOSE ({dist_l:.2f}m < {self.side_avoid_distance}m)! Overriding wall follow. Nudging right ({left_nudge_angular_z:.2f})"
+                )
+                # Override the right wall following turn command ONLY if the left nudge is significant
+                target_angular_z = min(target_angular_z, left_nudge_angular_z) # Allow stronger right turn if needed
+
+        # Log final command before clipping
         self.get_logger().debug(
-            f"Command: linear={target_linear_x:.2f} m/s, "
+            f"Command (Before Clip): linear={target_linear_x:.2f} m/s, "
             f"angular={target_angular_z:.2f} rad/s"
         )
 
         # Apply velocities with limits
         self.twist.linear.x = target_linear_x
+        # Clip angular velocity to max speeds
         self.twist.angular.z = max(-self.max_angular_speed, min(target_angular_z, self.max_angular_speed))
+        
+        # Log final command after clipping
+        self.get_logger().debug(
+            f"Command (Final): linear={self.twist.linear.x:.2f} m/s, "
+            f"angular={self.twist.angular.z:.2f} rad/s"
+        )
 
         self.cmd_vel_pub.publish(self.twist)
 
