@@ -11,9 +11,8 @@ import math
 from enum import Enum, auto
 
 class ExplorationState(Enum):
-    INIT = auto()           # Initial state, moving to first position
-    NAVIGATING = auto()     # Moving to next target
-    ROTATING = auto()       # Rotating to align with next target
+    INIT = auto()           # Initial state
+    NAVIGATING = auto()     # Moving to target
     AVOIDING = auto()       # Avoiding obstacles
 
 class FastExplorerNode(Node):
@@ -45,7 +44,7 @@ class FastExplorerNode(Node):
         self.arena_size_y = 4.0
         
         # Path planning
-        self.current_state = ExplorationState.INIT
+        self.current_state = ExplorationState.NAVIGATING  # Start in navigation state
         self.target_box = 0
         self.boxes_to_explore = [1,2,3,4,5,8,9,12,13,14,15,16]  # Outer boxes only
         self.visited_boxes = set()
@@ -62,28 +61,22 @@ class FastExplorerNode(Node):
         self.target_x = 0.0
         self.target_y = 0.0
         
-        # Navigation parameters - adjusted for more efficient movement
-        self.position_tolerance = 0.15  # Increased tolerance for faster transitions
-        self.angle_tolerance = 0.15     # Increased angle tolerance
-        self.target_heading = 0.0
-
-        # Tunable Parameters - adjusted for smoother movement through inner boxes
-        self.critical_front_distance = 0.50  # Reduced since we don't need to be as cautious
-        self.warning_front_distance = 0.70   # Reduced for more direct paths
-        self.side_avoid_distance = 0.45      # Reduced side clearance
-        self.min_clearance = 0.40           # Reduced minimum clearance
-
-        # Speeds - adjusted for faster movement
-        self.max_linear_speed = 0.30        # Slightly increased
-        self.cautious_linear_speed = 0.18   # Increased for faster obstacle passing
-        self.max_angular_speed = 1.9
-        self.gentle_turn_speed = 1.2
+        # Navigation parameters
+        self.position_tolerance = 0.2  # Increased for faster box transitions
+        
+        # Obstacle avoidance parameters
+        self.critical_front_distance = 0.45  # Reduced for more direct paths
+        self.warning_front_distance = 0.65
+        
+        # Speeds
+        self.max_linear_speed = 0.26        # Maximum allowed linear velocity
+        self.cautious_linear_speed = 0.15   # Reduced speed for obstacle avoidance
+        self.max_angular_speed = 1.82       # Maximum allowed angular velocity
+        self.turn_speed = 1.5               # Single turn speed for simplicity
 
         # LiDAR Sector Angles (degrees)
-        self.front_angle = 20
-        self.front_side_angle = 50
-        self.side_angle_start = 50
-        self.side_angle_end = 130
+        self.front_angle = 25               # Wider front detection
+        self.front_side_angle = 45          # Reduced side detection
 
         # Velocity message
         self.twist = Twist()
@@ -93,18 +86,16 @@ class FastExplorerNode(Node):
 
     def set_next_target(self):
         """Set the next target box to explore."""
-        # If we've visited all boxes, we're done
         if len(self.visited_boxes) >= len(self.boxes_to_explore):
             self.get_logger().info("Exploration complete! All outer boxes visited.")
             self.stop_robot()
             return False
 
-        # Get next unvisited box - now using a more efficient path
+        # Find the closest unvisited box
         current_box = self.get_current_box()
         min_distance = float('inf')
         next_box = None
 
-        # Find the closest unvisited box
         for box in self.boxes_to_explore:
             if box not in self.visited_boxes:
                 box_x, box_y = self.box_positions[box]
@@ -147,60 +138,27 @@ class FastExplorerNode(Node):
             self.get_logger().info(f"Visited box {current_box}. Total boxes visited: {len(self.visited_boxes)}")
             self.set_next_target()
 
-        # Calculate distance and angle to target
+        # Calculate distance and direction to target
         dx = self.target_x - self.x
         dy = self.target_y - self.y
         distance = math.sqrt(dx*dx + dy*dy)
+        
+        if distance < self.position_tolerance:
+            self.set_next_target()
+        else:
+            self.move_to_target(dx, dy, distance)
+
+    def move_to_target(self, dx, dy, distance):
+        """Move directly towards target."""
+        # Calculate target angle
         target_angle = math.atan2(dy, dx)
         
-        # Normalize angle difference to [-pi, pi]
-        angle_diff = target_angle - self.theta_z
-        while angle_diff > math.pi: angle_diff -= 2*math.pi
-        while angle_diff < -math.pi: angle_diff += 2*math.pi
-
-        # State machine for navigation
-        if self.current_state == ExplorationState.INIT:
-            if abs(angle_diff) > self.angle_tolerance:
-                self.rotate_to_target(angle_diff)
-            else:
-                self.current_state = ExplorationState.NAVIGATING
-                
-        elif self.current_state == ExplorationState.NAVIGATING:
-            if distance < self.position_tolerance:
-                self.set_next_target()
-            elif abs(angle_diff) > self.angle_tolerance * 2:
-                self.current_state = ExplorationState.ROTATING
-            else:
-                self.move_to_target(distance, angle_diff)
-                
-        elif self.current_state == ExplorationState.ROTATING:
-            if abs(angle_diff) < self.angle_tolerance:
-                self.current_state = ExplorationState.NAVIGATING
-            else:
-                self.rotate_to_target(angle_diff)
-
-        return distance, angle_diff
-
-    def rotate_to_target(self, angle_diff):
-        """Rotate towards target angle."""
-        self.twist.linear.x = 0.0
-        self.twist.angular.z = max(-self.max_angular_speed, 
-                                 min(self.max_angular_speed, angle_diff))
-
-    def move_to_target(self, distance, angle_diff):
-        """Move towards target position."""
-        # Scale linear speed based on distance and angle
-        speed_factor = min(1.0, distance / 0.5)  # Slow down when close
-        angle_factor = max(0.0, 1.0 - abs(angle_diff))  # Slow down when not aligned
+        # Set maximum speed when far, reduce speed when closer
+        speed = self.max_linear_speed if distance > 0.5 else self.max_linear_speed * (distance / 0.5)
         
-        # More aggressive movement when far from target
-        if distance > 1.0:
-            speed_factor = 1.0
-            angle_factor = max(0.3, angle_factor)  # Maintain some forward motion while turning
-        
-        self.twist.linear.x = self.max_linear_speed * speed_factor * angle_factor
-        self.twist.angular.z = max(-self.gentle_turn_speed, 
-                                min(self.gentle_turn_speed, angle_diff))
+        # Set velocities for direct movement
+        self.twist.linear.x = speed
+        self.twist.angular.z = target_angle * 2.0  # Simple proportional control
 
     def odom_callback(self, msg: Odometry):
         """Update robot's position and orientation."""
@@ -213,12 +171,11 @@ class FastExplorerNode(Node):
         qz = msg.pose.pose.orientation.z
         qw = msg.pose.pose.orientation.w
         
-        # Convert quaternion to Euler angles
         siny_cosp = 2.0 * (qw * qz + qx * qy)
         cosy_cosp = 1.0 - 2.0 * (qy * qy + qz * qz)
         self.theta_z = math.atan2(siny_cosp, cosy_cosp)
         
-        # Update navigation if not in obstacle avoidance
+        # Update navigation if not avoiding obstacles
         if self.current_state != ExplorationState.AVOIDING:
             self.update_navigation()
 
@@ -227,118 +184,59 @@ class FastExplorerNode(Node):
         if self.shutdown_flag:
             return
 
-        dist_f, dist_fl, dist_fr, dist_l, dist_r = self.get_sector_distances(msg)
+        dist_f, dist_fl, dist_fr = self.get_sector_distances(msg)
 
         # Check if we need to avoid obstacles
         if dist_f < self.critical_front_distance or dist_f < self.warning_front_distance:
             self.current_state = ExplorationState.AVOIDING
-            self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr, dist_l, dist_r)
+            self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
         elif self.current_state == ExplorationState.AVOIDING:
-            # Return to normal navigation
             self.current_state = ExplorationState.NAVIGATING
             self.update_navigation()
 
         self.cmd_vel_pub.publish(self.twist)
 
-    def handle_obstacle_avoidance(self, dist_f, dist_fl, dist_fr, dist_l, dist_r):
-        """Handle obstacle avoidance logic."""
+    def handle_obstacle_avoidance(self, dist_f, dist_fl, dist_fr):
+        """Simple obstacle avoidance."""
         if dist_f < self.critical_front_distance:
-            # Critical front obstacle - stop and turn
+            # Stop and turn away from obstacle
             self.twist.linear.x = 0.0
-            
-            # Simplified turning decision - just turn in the direction with more space
-            if dist_fl > dist_fr:
-                self.twist.angular.z = self.max_angular_speed
-            else:
-                self.twist.angular.z = -self.max_angular_speed
-                
-        elif dist_f < self.warning_front_distance:
-            # Warning distance - slow down and start turning
+            self.twist.angular.z = self.turn_speed if dist_fl > dist_fr else -self.turn_speed
+        else:
+            # Slow down and turn while moving
             self.twist.linear.x = self.cautious_linear_speed
-            distance_factor = (self.warning_front_distance - dist_f) / (self.warning_front_distance - self.critical_front_distance)
-            turn_speed = self.gentle_turn_speed + (self.max_angular_speed - self.gentle_turn_speed) * distance_factor
-            
-            # Simplified turning decision
-            if dist_fl > dist_fr:
-                self.twist.angular.z = turn_speed
-            else:
-                self.twist.angular.z = -turn_speed
+            self.twist.angular.z = self.turn_speed if dist_fl > dist_fr else -self.turn_speed
 
     def get_sector_distances(self, msg: LaserScan):
-        """Get minimum distances in key sectors."""
+        """Get minimum distances in front sectors."""
         ranges = msg.ranges
         angle_increment = msg.angle_increment
         num_ranges = len(ranges)
         range_min_thresh = msg.range_min + 0.02
         range_max_thresh = msg.range_max
 
-        # Add debug info about LiDAR configuration
-        self.get_logger().debug(
-            f"LiDAR config: ranges={len(ranges)}, "
-            f"angle_min={msg.angle_min:.2f}, "
-            f"angle_max={msg.angle_max:.2f}, "
-            f"increment={angle_increment:.4f}"
-        )
-
-        # Define angles in radians
+        # Calculate indices for front sectors
         front_rad = math.radians(self.front_angle)
         front_side_rad = math.radians(self.front_side_angle)
-        side_start_rad = math.radians(self.side_angle_start)
-        side_end_rad = math.radians(self.side_angle_end)
         
-        # Calculate indices for each sector
-        idx_front_delta = int(front_rad / angle_increment)
+        idx_front = int(front_rad / angle_increment)
+        idx_side = int(front_side_rad / angle_increment)
         
-        # Front sector (combining positive and negative angles)
-        front_indices_positive = list(range(0, idx_front_delta + 1))
-        front_indices_negative = list(range(num_ranges - idx_front_delta, num_ranges))
-        front_combined_indices = front_indices_positive + front_indices_negative
-
-        # Add debug info about sector indices
-        self.get_logger().debug(
-            f"Front sector indices: positive={front_indices_positive[0]}-{front_indices_positive[-1]}, "
-            f"negative={front_indices_negative[0]}-{front_indices_negative[-1]}"
-        )
-
-        front_ranges = [ranges[i] for i in front_combined_indices if 0 <= i < num_ranges]
-        valid_ranges = [r for r in front_ranges if range_min_thresh < r < range_max_thresh and math.isfinite(r)]
+        # Get minimum distances in each sector
+        front_ranges = ranges[:idx_front] + ranges[-idx_front:]
+        front_left_ranges = ranges[idx_front:idx_side]
+        front_right_ranges = ranges[-idx_side:-idx_front]
         
-        # Add debug info about valid readings
-        if len(valid_ranges) == 0:
-            self.get_logger().warn("No valid front readings!")
-            self.get_logger().debug(f"Front ranges: {front_ranges}")
+        # Filter valid readings
+        valid_front = [r for r in front_ranges if range_min_thresh < r < range_max_thresh and math.isfinite(r)]
+        valid_fl = [r for r in front_left_ranges if range_min_thresh < r < range_max_thresh and math.isfinite(r)]
+        valid_fr = [r for r in front_right_ranges if range_min_thresh < r < range_max_thresh and math.isfinite(r)]
         
-        dist_f = min(valid_ranges, default=range_max_thresh)
+        dist_f = min(valid_front, default=range_max_thresh)
+        dist_fl = min(valid_fl, default=range_max_thresh)
+        dist_fr = min(valid_fr, default=range_max_thresh)
 
-        # Front-Left sector
-        idx_fl_start = idx_front_delta + 1
-        idx_fl_end = int(front_side_rad / angle_increment)
-        dist_fl = min([ranges[i] for i in range(idx_fl_start, idx_fl_end + 1) 
-                      if 0 <= i < num_ranges and range_min_thresh < ranges[i] < range_max_thresh 
-                      and math.isfinite(ranges[i])], default=range_max_thresh)
-
-        # Front-Right sector
-        idx_fr_start = num_ranges - int(front_side_rad / angle_increment)
-        idx_fr_end = num_ranges - (idx_front_delta + 1)
-        dist_fr = min([ranges[i] for i in range(idx_fr_start, idx_fr_end + 1)
-                      if 0 <= i < num_ranges and range_min_thresh < ranges[i] < range_max_thresh
-                      and math.isfinite(ranges[i])], default=range_max_thresh)
-        
-        # Left Side sector
-        idx_l_start = int(side_start_rad / angle_increment)
-        idx_l_end = int(side_end_rad / angle_increment)
-        dist_l = min([ranges[i] for i in range(idx_l_start, idx_l_end + 1)
-                     if 0 <= i < num_ranges and range_min_thresh < ranges[i] < range_max_thresh
-                     and math.isfinite(ranges[i])], default=range_max_thresh)
-
-        # Right Side sector
-        idx_r_start = num_ranges - int(side_end_rad / angle_increment)
-        idx_r_end = num_ranges - int(side_start_rad / angle_increment)
-        dist_r = min([ranges[i] for i in range(idx_r_start, idx_r_end + 1)
-                     if 0 <= i < num_ranges and range_min_thresh < ranges[i] < range_max_thresh
-                     and math.isfinite(ranges[i])], default=range_max_thresh)
-
-        return dist_f, dist_fl, dist_fr, dist_l, dist_r
+        return dist_f, dist_fl, dist_fr
 
     def stop_robot(self):
         """Stop the robot."""
