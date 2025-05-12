@@ -36,6 +36,11 @@ class FastExplorerNode(Node):
         self.y = 0.0
         self.theta_z = 0.0
         
+        # Arena parameters
+        self.arena_size_x = 4.0  # 4m x 4m arena
+        self.arena_size_y = 4.0
+        self.box_size = 1.0      # 1m x 1m boxes
+        
         # Robot physical parameters
         self.robot_radius = 0.25  # 25cm radius (50cm diameter)
         
@@ -74,6 +79,11 @@ class FastExplorerNode(Node):
         
         # Velocity message
         self.twist = Twist()
+        
+        # Timer for 90-second exploration
+        self.start_time = self.get_clock().now()
+        self.exploration_duration = 90.0  # seconds
+        self.timer = self.create_timer(0.1, self.timer_callback)  # 10Hz timer
         
         self.get_logger().info("Starting exploration - searching for open space!")
         self.set_next_target()
@@ -277,6 +287,30 @@ class FastExplorerNode(Node):
             self.stop_robot()
             self.shutdown_flag = True
 
+    def timer_callback(self):
+        """Check if exploration time is up."""
+        try:
+            current_time = self.get_clock().now()
+            elapsed_time = (current_time - self.start_time).nanoseconds / 1e9
+            
+            if elapsed_time >= self.exploration_duration:
+                self.get_logger().info(f"Exploration time ({self.exploration_duration}s) complete!")
+                self.get_logger().info(f"Visited {len(self.visited_boxes)} boxes: {sorted(list(self.visited_boxes))}")
+                self.stop_robot()
+                self.timer.cancel()
+                rclpy.shutdown()
+                return
+                
+            # Log progress every 10 seconds
+            if int(elapsed_time) % 10 == 0:
+                self.get_logger().info(f"Time remaining: {self.exploration_duration - elapsed_time:.1f}s")
+                
+        except Exception as e:
+            self.get_logger().error(f"Error in timer callback: {str(e)}")
+            self.stop_robot()
+            self.timer.cancel()
+            rclpy.shutdown()
+
 def main(args=None):
     rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
     node = None
@@ -286,16 +320,22 @@ def main(args=None):
     except KeyboardInterrupt:
         if node is not None:
             node.get_logger().info("Keyboard interrupt received. Shutting down...")
+    except Exception as e:
+        if node is not None:
+            node.get_logger().error(f"Unexpected error: {str(e)}")
     finally:
         if node is not None:
             node.get_logger().info("Finalizing shutdown...")
             node.on_shutdown()
             
-            if rclpy.ok():
-                for _ in range(10):
-                    rclpy.spin_once(node, timeout_sec=0.05)
-                    if node.shutdown_flag and not rclpy.ok():
-                        break
+            try:
+                if rclpy.ok():
+                    for _ in range(10):
+                        rclpy.spin_once(node, timeout_sec=0.05)
+                        if node.shutdown_flag and not rclpy.ok():
+                            break
+            except Exception as e:
+                print(f"Error during shutdown: {str(e)}")
             
             node.destroy_node()
 
