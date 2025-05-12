@@ -78,6 +78,8 @@ class PatternExplorerNode(Node):
         self.target_angle = 0.0          # Used for alignment turn
         self.initial_box_reached = False
         self.state_start_time = 0.0 # To track duration in MOVING_MIDDLE
+        self.last_state = None # Track previous state for oscillation detection
+        self.consecutive_avoid_triggers = 0 # Count PERIMETER -> AVOIDING transitions
         
         # Path planning (only for first box and tracking)
         self.target_box = 1 # Start with Box 1
@@ -105,16 +107,43 @@ class PatternExplorerNode(Node):
 
     # --- State Transition Helper ---
     def change_state(self, new_state):
-        """Helper to change state and log, potentially reset timers."""
+        """Helper to change state, log, handle oscillation, potentially reset timers."""
         if self.current_state != new_state:
             self.get_logger().info(f"Changing state from {self.current_state.name} to {new_state.name}")
+            previous_state = self.current_state # Store before overwriting
+            self.last_state = previous_state   # Update last_state tracker
             self.current_state = new_state
-            # Reset state timer if transitioning to a timed state
+
+            # Oscillation Detection: FOLLOWING_PERIMETER -> AVOIDING
+            if previous_state == ExplorationState.FOLLOWING_PERIMETER and \
+               new_state == ExplorationState.AVOIDING:
+                self.consecutive_avoid_triggers += 1
+                self.get_logger().warning(f"PERIMETER -> AVOIDING detected. Consecutive count: {self.consecutive_avoid_triggers}")
+                if self.consecutive_avoid_triggers > 2:
+                    self.get_logger().error("Oscillation detected (PERIMETER <-> AVOIDING)! Forcing 180 turn.")
+                    # Force state to CORNER_TURNING for a 180-degree escape turn
+                    self.current_state = ExplorationState.CORNER_TURNING 
+                    self.target_angle = self.normalize_angle(self.theta_z + math.pi)
+                    self.consecutive_avoid_triggers = 0 # Reset counter after triggering escape
+                    # Don't reset state timer here, CORNER_TURNING doesn't use it
+                    # Reset twist to be safe before the turning handler takes over
+                    self.twist.linear.x = 0.0
+                    self.twist.angular.z = 0.0
+                    return # Exit early as we forced a different state
+            else:
+                # Reset counter if the specific oscillation pattern is broken
+                if self.consecutive_avoid_triggers > 0:
+                     self.get_logger().info("Resetting consecutive avoid trigger count.")
+                self.consecutive_avoid_triggers = 0
+
+            # Reset state timer if transitioning to MOVING_MIDDLE
             if new_state == ExplorationState.MOVING_MIDDLE:
                 self.state_start_time = time.time()
-            # Reset twist command to be safe
-            self.twist.linear.x = 0.0
-            self.twist.angular.z = 0.0
+                
+            # Reset twist command when changing to *most* new states (except maybe AVOIDING where immediate turn is set)
+            if new_state != ExplorationState.AVOIDING: # Avoid resetting twist if avoiding handler sets it immediately
+                 self.twist.linear.x = 0.0
+                 self.twist.angular.z = 0.0
 
     # --- State Handling Methods ---
 
