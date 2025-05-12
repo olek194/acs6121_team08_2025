@@ -11,19 +11,17 @@ import math
 from enum import Enum, auto
 
 class ExplorationState(Enum):
-    INIT = auto()           # Initial state
-    NAVIGATING = auto()     # Moving to target
-    AVOIDING = auto()       # Avoiding obstacles
+    FINDING_SPACE = auto()    # Initial state - looking for open space
+    NAVIGATING = auto()       # Moving to target
+    AVOIDING = auto()         # Avoiding obstacles
 
 class FastExplorerNode(Node):
 
     def __init__(self):
         super().__init__("fast_explorer_node")
 
-        # Publisher
+        # Publisher and Subscribers
         self.cmd_vel_pub = self.create_publisher(Twist, "cmd_vel", 10)
-
-        # Subscribers
         self.lidar_sub = self.create_subscription(
             LaserScan, "scan", self.lidar_callback, 10
         )
@@ -38,18 +36,32 @@ class FastExplorerNode(Node):
         self.y = 0.0
         self.theta_z = 0.0
         
-        # Arena configuration
-        self.box_size = 1.0  # 1x1 meter boxes
-        self.arena_size_x = 4.0
-        self.arena_size_y = 4.0
+        # Robot physical parameters
+        self.robot_radius = 0.25  # 25cm radius (50cm diameter)
+        
+        # Navigation parameters
+        self.position_tolerance = 0.2
+        self.open_space_threshold = 1.0  # Minimum distance to consider space "open"
+        
+        # Speeds
+        self.max_linear_speed = 0.26
+        self.cautious_linear_speed = 0.15
+        self.max_angular_speed = 1.82
+        self.search_turn_speed = 0.8     # Slower turn while searching for space
+        
+        # LiDAR Sector Angles (degrees)
+        self.front_angle = 30            # Wider front detection for finding space
+        self.front_side_angle = 45
+        
+        # Start in finding space state
+        self.current_state = ExplorationState.FINDING_SPACE
         
         # Path planning
-        self.current_state = ExplorationState.NAVIGATING  # Start in navigation state
         self.target_box = 0
-        self.boxes_to_explore = [1,2,3,4,5,8,9,12,13,14,15,16]  # Outer boxes only
+        self.boxes_to_explore = [1,2,3,4,5,8,9,12,13,14,15,16]
         self.visited_boxes = set()
         
-        # Box center positions (x,y) relative to arena center
+        # Box positions
         self.box_positions = {
             1: (-1.5, 1.5),   2: (-0.5, 1.5),   3: (0.5, 1.5),   4: (1.5, 1.5),
             5: (-1.5, 0.5),   6: (-0.5, 0.5),   7: (0.5, 0.5),   8: (1.5, 0.5),
@@ -57,41 +69,13 @@ class FastExplorerNode(Node):
             13: (-1.5, -1.5), 14: (-0.5, -1.5), 15: (0.5, -1.5), 16: (1.5, -1.5)
         }
         
-        # Current target position
         self.target_x = 0.0
         self.target_y = 0.0
         
-        # Robot physical parameters
-        self.robot_radius = 0.25  # 25cm radius (50cm diameter)
-        
-        # Navigation parameters
-        self.position_tolerance = 0.2  # Increased for faster box transitions
-        
-        # Obstacle avoidance parameters - adjusted for robot size
-        self.critical_front_distance = 0.45 + self.robot_radius  # Add robot radius to ensure body clearance
-        self.warning_front_distance = 0.60 + self.robot_radius   # Add robot radius for earlier warning
-        self.min_side_clearance = 0.35 + self.robot_radius      # Minimum side clearance including robot radius
-        self.exit_avoidance_margin = 0.15                       # Additional margin before exiting avoidance
-        
-        # Speeds
-        self.max_linear_speed = 0.26        # Maximum allowed linear velocity
-        self.cautious_linear_speed = 0.15   # Reduced speed for obstacle avoidance
-        self.max_angular_speed = 1.82       # Maximum allowed angular velocity
-        self.turn_speed = 1.82              # Increased for faster obstacle avoidance
-
-        # Movement stabilization
-        self.last_turn_direction = None     # Track last turn direction
-        self.consecutive_turns = 0          # Count consecutive turns in same direction
-        self.straight_line_threshold = 0.2  # Radians (about 11.5 degrees)
-        
-        # LiDAR Sector Angles (degrees)
-        self.front_angle = 20               # Wider front detection
-        self.front_side_angle = 45          # Increased for better side detection
-
         # Velocity message
         self.twist = Twist()
         
-        self.get_logger().info("Starting exploration from center position!")
+        self.get_logger().info("Starting exploration - searching for open space!")
         self.set_next_target()
 
     def set_next_target(self):
@@ -159,7 +143,7 @@ class FastExplorerNode(Node):
             self.move_to_target(dx, dy, distance)
 
     def move_to_target(self, dx, dy, distance):
-        """Move directly towards target with improved straight-line stability."""
+        """Move directly towards target."""
         # Calculate target angle
         target_angle = math.atan2(dy, dx)
         
@@ -171,35 +155,9 @@ class FastExplorerNode(Node):
         while angle_diff < -math.pi:
             angle_diff += 2 * math.pi
             
-        # Always move forward, but adjust speed based on alignment
-        if abs(angle_diff) < self.straight_line_threshold:
-            # Well aligned - go straight at full speed
-            self.twist.linear.x = self.max_linear_speed
-            self.twist.angular.z = 0.0  # Force zero turning to maintain straight line
-            self.last_turn_direction = None
-            self.consecutive_turns = 0
-        else:
-            # Not well aligned - adjust course
-            self.twist.linear.x = self.max_linear_speed * 0.7  # Reduce speed while turning
-            
-            # Determine turn direction
-            turn_direction = 1.0 if angle_diff > 0 else -1.0
-            
-            # Check if we're repeatedly turning in the same direction
-            if turn_direction == self.last_turn_direction:
-                self.consecutive_turns += 1
-            else:
-                self.consecutive_turns = 0
-            self.last_turn_direction = turn_direction
-            
-            # If we've been turning the same way too much, force a straight section
-            if self.consecutive_turns > 5:
-                self.twist.angular.z = 0.0
-                self.consecutive_turns = 0
-            else:
-                # Normal proportional turning
-                turn_factor = min(abs(angle_diff) / (math.pi/2), 1.0)
-                self.twist.angular.z = turn_direction * self.max_angular_speed * turn_factor * 0.7
+        # Full speed ahead with gentle course corrections
+        self.twist.linear.x = self.max_linear_speed
+        self.twist.angular.z = max(-0.5, min(0.5, angle_diff))
 
     def odom_callback(self, msg: Odometry):
         """Update robot's position and orientation."""
@@ -221,73 +179,49 @@ class FastExplorerNode(Node):
             self.update_navigation()
 
     def lidar_callback(self, msg: LaserScan):
-        """Handle obstacle avoidance during navigation."""
+        """Handle movement based on current state."""
         if self.shutdown_flag:
             return
 
         dist_f, dist_fl, dist_fr = self.get_sector_distances(msg)
 
-        # Check for obstacles and switch states accordingly
-        if dist_f < self.warning_front_distance:
-            self.current_state = ExplorationState.AVOIDING
-            self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
+        if self.current_state == ExplorationState.FINDING_SPACE:
+            self.handle_space_finding(dist_f, dist_fl, dist_fr)
+        elif self.current_state == ExplorationState.NAVIGATING:
+            if dist_f < (0.45 + self.robot_radius):  # Only avoid very close obstacles
+                self.current_state = ExplorationState.AVOIDING
+                self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
+            else:
+                self.update_navigation()
         elif self.current_state == ExplorationState.AVOIDING:
-            # Only exit avoiding state if we have clear path ahead AND sufficient side clearance
-            # Added extra margin for safety
-            if (dist_f > self.warning_front_distance + self.exit_avoidance_margin and 
-                min(dist_fl, dist_fr) > self.min_side_clearance + self.exit_avoidance_margin):
+            if dist_f > (0.60 + self.robot_radius):
                 self.current_state = ExplorationState.NAVIGATING
-                self.last_turn_direction = None  # Reset turn direction when exiting avoidance
-                self.consecutive_turns = 0
                 self.update_navigation()
             else:
                 self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
-        else:
-            # Normal navigation
-            self.update_navigation()
 
         self.cmd_vel_pub.publish(self.twist)
 
-    def handle_obstacle_avoidance(self, dist_f, dist_fl, dist_fr):
-        """Simple obstacle avoidance with robot size consideration."""
-        if dist_f < self.critical_front_distance:
-            # Critical distance - stop and turn quickly
-            self.twist.linear.x = 0.0
-            
-            # Choose turn direction based on available space
-            if dist_fl > dist_fr and dist_fl > self.min_side_clearance:
-                self.twist.angular.z = self.max_angular_speed
-                self.last_turn_direction = 1.0
-            elif dist_fr > dist_fl and dist_fr > self.min_side_clearance:
-                self.twist.angular.z = -self.max_angular_speed
-                self.last_turn_direction = -1.0
-            else:
-                # If neither side has enough clearance, turn towards the side with more space
-                turn_dir = 1.0 if dist_fl > dist_fr else -1.0
-                self.twist.angular.z = self.max_angular_speed * turn_dir
-                self.last_turn_direction = turn_dir
-            
-            self.consecutive_turns += 1
-            
+    def handle_space_finding(self, dist_f, dist_fl, dist_fr):
+        """Initial behavior: move forward slowly while turning until open space found."""
+        self.twist.linear.x = self.cautious_linear_speed
+        
+        # Keep turning in one direction (left) until we find open space
+        if dist_f > self.open_space_threshold and dist_fl > self.open_space_threshold:
+            self.get_logger().info("Found open space! Moving to first target.")
+            self.current_state = ExplorationState.NAVIGATING
+            # Set full speed toward target
+            self.twist.linear.x = self.max_linear_speed
+            self.twist.angular.z = 0.0
         else:
-            # Warning distance - slow down and turn
-            self.twist.linear.x = self.cautious_linear_speed
-            
-            # Calculate turn intensity based on clearance needed
-            clearance_factor = min(1.0, (self.warning_front_distance - dist_f) / 
-                                (self.warning_front_distance - self.critical_front_distance))
-            
-            # Continue turning in the same direction until we have sufficient clearance
-            if self.last_turn_direction is not None:
-                self.twist.angular.z = self.turn_speed * clearance_factor * self.last_turn_direction
-            else:
-                # If no previous turn direction, choose based on available space
-                if dist_fl > dist_fr and dist_fl > self.min_side_clearance:
-                    self.twist.angular.z = self.turn_speed * clearance_factor
-                    self.last_turn_direction = 1.0
-                else:
-                    self.twist.angular.z = -self.turn_speed * clearance_factor
-                    self.last_turn_direction = -1.0
+            # Keep turning left while moving slowly
+            self.twist.angular.z = self.search_turn_speed
+
+    def handle_obstacle_avoidance(self, dist_f, dist_fl, dist_fr):
+        """Simple obstacle avoidance."""
+        self.twist.linear.x = 0.0
+        # Turn in direction with more space
+        self.twist.angular.z = self.max_angular_speed if dist_fl > dist_fr else -self.max_angular_speed
 
     def get_sector_distances(self, msg: LaserScan):
         """Get minimum distances in front sectors."""
