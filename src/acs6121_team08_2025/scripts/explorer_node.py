@@ -71,6 +71,7 @@ class FastExplorerNode(Node):
         self.critical_front_distance = 0.45 + self.robot_radius  # Add robot radius to ensure body clearance
         self.warning_front_distance = 0.60 + self.robot_radius   # Add robot radius for earlier warning
         self.min_side_clearance = 0.35 + self.robot_radius      # Minimum side clearance including robot radius
+        self.exit_avoidance_margin = 0.15                       # Additional margin before exiting avoidance
         
         # Speeds
         self.max_linear_speed = 0.26        # Maximum allowed linear velocity
@@ -78,6 +79,11 @@ class FastExplorerNode(Node):
         self.max_angular_speed = 1.82       # Maximum allowed angular velocity
         self.turn_speed = 1.82              # Increased for faster obstacle avoidance
 
+        # Movement stabilization
+        self.last_turn_direction = None     # Track last turn direction
+        self.consecutive_turns = 0          # Count consecutive turns in same direction
+        self.straight_line_threshold = 0.2  # Radians (about 11.5 degrees)
+        
         # LiDAR Sector Angles (degrees)
         self.front_angle = 20               # Wider front detection
         self.front_side_angle = 45          # Increased for better side detection
@@ -153,7 +159,7 @@ class FastExplorerNode(Node):
             self.move_to_target(dx, dy, distance)
 
     def move_to_target(self, dx, dy, distance):
-        """Move directly towards target."""
+        """Move directly towards target with improved straight-line stability."""
         # Calculate target angle
         target_angle = math.atan2(dy, dx)
         
@@ -165,13 +171,35 @@ class FastExplorerNode(Node):
         while angle_diff < -math.pi:
             angle_diff += 2 * math.pi
             
-        # Always move forward, adjust turning based on angle difference
-        self.twist.linear.x = self.max_linear_speed
-        
-        # Proportional control for turning, max at 90 degrees
-        turn_factor = min(abs(angle_diff) / (math.pi/2), 1.0)
-        turn_direction = 1.0 if angle_diff > 0 else -1.0
-        self.twist.angular.z = turn_direction * self.max_angular_speed * turn_factor
+        # Always move forward, but adjust speed based on alignment
+        if abs(angle_diff) < self.straight_line_threshold:
+            # Well aligned - go straight at full speed
+            self.twist.linear.x = self.max_linear_speed
+            self.twist.angular.z = 0.0  # Force zero turning to maintain straight line
+            self.last_turn_direction = None
+            self.consecutive_turns = 0
+        else:
+            # Not well aligned - adjust course
+            self.twist.linear.x = self.max_linear_speed * 0.7  # Reduce speed while turning
+            
+            # Determine turn direction
+            turn_direction = 1.0 if angle_diff > 0 else -1.0
+            
+            # Check if we're repeatedly turning in the same direction
+            if turn_direction == self.last_turn_direction:
+                self.consecutive_turns += 1
+            else:
+                self.consecutive_turns = 0
+            self.last_turn_direction = turn_direction
+            
+            # If we've been turning the same way too much, force a straight section
+            if self.consecutive_turns > 5:
+                self.twist.angular.z = 0.0
+                self.consecutive_turns = 0
+            else:
+                # Normal proportional turning
+                turn_factor = min(abs(angle_diff) / (math.pi/2), 1.0)
+                self.twist.angular.z = turn_direction * self.max_angular_speed * turn_factor * 0.7
 
     def odom_callback(self, msg: Odometry):
         """Update robot's position and orientation."""
@@ -205,9 +233,12 @@ class FastExplorerNode(Node):
             self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
         elif self.current_state == ExplorationState.AVOIDING:
             # Only exit avoiding state if we have clear path ahead AND sufficient side clearance
-            if (dist_f > self.warning_front_distance + 0.1 and 
-                min(dist_fl, dist_fr) > self.min_side_clearance):
+            # Added extra margin for safety
+            if (dist_f > self.warning_front_distance + self.exit_avoidance_margin and 
+                min(dist_fl, dist_fr) > self.min_side_clearance + self.exit_avoidance_margin):
                 self.current_state = ExplorationState.NAVIGATING
+                self.last_turn_direction = None  # Reset turn direction when exiting avoidance
+                self.consecutive_turns = 0
                 self.update_navigation()
             else:
                 self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
@@ -222,14 +253,22 @@ class FastExplorerNode(Node):
         if dist_f < self.critical_front_distance:
             # Critical distance - stop and turn quickly
             self.twist.linear.x = 0.0
-            # Choose direction with more space, considering minimum clearance
+            
+            # Choose turn direction based on available space
             if dist_fl > dist_fr and dist_fl > self.min_side_clearance:
                 self.twist.angular.z = self.max_angular_speed
+                self.last_turn_direction = 1.0
             elif dist_fr > dist_fl and dist_fr > self.min_side_clearance:
                 self.twist.angular.z = -self.max_angular_speed
+                self.last_turn_direction = -1.0
             else:
                 # If neither side has enough clearance, turn towards the side with more space
-                self.twist.angular.z = self.max_angular_speed if dist_fl > dist_fr else -self.max_angular_speed
+                turn_dir = 1.0 if dist_fl > dist_fr else -1.0
+                self.twist.angular.z = self.max_angular_speed * turn_dir
+                self.last_turn_direction = turn_dir
+            
+            self.consecutive_turns += 1
+            
         else:
             # Warning distance - slow down and turn
             self.twist.linear.x = self.cautious_linear_speed
@@ -238,14 +277,17 @@ class FastExplorerNode(Node):
             clearance_factor = min(1.0, (self.warning_front_distance - dist_f) / 
                                 (self.warning_front_distance - self.critical_front_distance))
             
-            # Choose turn direction based on available space and minimum clearance
-            if dist_fl > dist_fr and dist_fl > self.min_side_clearance:
-                self.twist.angular.z = self.turn_speed * clearance_factor
-            elif dist_fr > dist_fl and dist_fr > self.min_side_clearance:
-                self.twist.angular.z = -self.turn_speed * clearance_factor
+            # Continue turning in the same direction until we have sufficient clearance
+            if self.last_turn_direction is not None:
+                self.twist.angular.z = self.turn_speed * clearance_factor * self.last_turn_direction
             else:
-                # If neither side has enough clearance, turn towards the side with more space
-                self.twist.angular.z = (self.turn_speed * clearance_factor) if dist_fl > dist_fr else (-self.turn_speed * clearance_factor)
+                # If no previous turn direction, choose based on available space
+                if dist_fl > dist_fr and dist_fl > self.min_side_clearance:
+                    self.twist.angular.z = self.turn_speed * clearance_factor
+                    self.last_turn_direction = 1.0
+                else:
+                    self.twist.angular.z = -self.turn_speed * clearance_factor
+                    self.last_turn_direction = -1.0
 
     def get_sector_distances(self, msg: LaserScan):
         """Get minimum distances in front sectors."""
