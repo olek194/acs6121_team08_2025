@@ -61,12 +61,16 @@ class FastExplorerNode(Node):
         self.target_x = 0.0
         self.target_y = 0.0
         
+        # Robot physical parameters
+        self.robot_radius = 0.25  # 25cm radius (50cm diameter)
+        
         # Navigation parameters
         self.position_tolerance = 0.2  # Increased for faster box transitions
         
-        # Obstacle avoidance parameters
-        self.critical_front_distance = 0.45  # Increased to detect obstacles earlier
-        self.warning_front_distance = 0.60   # Increased for earlier response
+        # Obstacle avoidance parameters - adjusted for robot size
+        self.critical_front_distance = 0.45 + self.robot_radius  # Add robot radius to ensure body clearance
+        self.warning_front_distance = 0.60 + self.robot_radius   # Add robot radius for earlier warning
+        self.min_side_clearance = 0.35 + self.robot_radius      # Minimum side clearance including robot radius
         
         # Speeds
         self.max_linear_speed = 0.26        # Maximum allowed linear velocity
@@ -76,7 +80,7 @@ class FastExplorerNode(Node):
 
         # LiDAR Sector Angles (degrees)
         self.front_angle = 20               # Wider front detection
-        self.front_side_angle = 40          # Wider side detection
+        self.front_side_angle = 45          # Increased for better side detection
 
         # Velocity message
         self.twist = Twist()
@@ -196,12 +200,13 @@ class FastExplorerNode(Node):
         dist_f, dist_fl, dist_fr = self.get_sector_distances(msg)
 
         # Check for obstacles and switch states accordingly
-        if dist_f < self.warning_front_distance:  # Changed to warning distance for earlier response
+        if dist_f < self.warning_front_distance:
             self.current_state = ExplorationState.AVOIDING
             self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
         elif self.current_state == ExplorationState.AVOIDING:
-            # Only exit avoiding state if we have clear path ahead
-            if dist_f > self.warning_front_distance + 0.1:  # Added buffer for stability
+            # Only exit avoiding state if we have clear path ahead AND sufficient side clearance
+            if (dist_f > self.warning_front_distance + 0.1 and 
+                min(dist_fl, dist_fr) > self.min_side_clearance):
                 self.current_state = ExplorationState.NAVIGATING
                 self.update_navigation()
             else:
@@ -213,19 +218,34 @@ class FastExplorerNode(Node):
         self.cmd_vel_pub.publish(self.twist)
 
     def handle_obstacle_avoidance(self, dist_f, dist_fl, dist_fr):
-        """Simple obstacle avoidance."""
+        """Simple obstacle avoidance with robot size consideration."""
         if dist_f < self.critical_front_distance:
             # Critical distance - stop and turn quickly
             self.twist.linear.x = 0.0
-            # Choose direction with more space
-            self.twist.angular.z = self.max_angular_speed if dist_fl > dist_fr else -self.max_angular_speed
+            # Choose direction with more space, considering minimum clearance
+            if dist_fl > dist_fr and dist_fl > self.min_side_clearance:
+                self.twist.angular.z = self.max_angular_speed
+            elif dist_fr > dist_fl and dist_fr > self.min_side_clearance:
+                self.twist.angular.z = -self.max_angular_speed
+            else:
+                # If neither side has enough clearance, turn towards the side with more space
+                self.twist.angular.z = self.max_angular_speed if dist_fl > dist_fr else -self.max_angular_speed
         else:
             # Warning distance - slow down and turn
             self.twist.linear.x = self.cautious_linear_speed
-            # More aggressive turning
-            turn_direction = 1.0 if dist_fl > dist_fr else -1.0
-            turn_factor = (self.warning_front_distance - dist_f) / (self.warning_front_distance - self.critical_front_distance)
-            self.twist.angular.z = turn_direction * (self.turn_speed * 0.5 + self.turn_speed * 0.5 * turn_factor)
+            
+            # Calculate turn intensity based on clearance needed
+            clearance_factor = min(1.0, (self.warning_front_distance - dist_f) / 
+                                (self.warning_front_distance - self.critical_front_distance))
+            
+            # Choose turn direction based on available space and minimum clearance
+            if dist_fl > dist_fr and dist_fl > self.min_side_clearance:
+                self.twist.angular.z = self.turn_speed * clearance_factor
+            elif dist_fr > dist_fl and dist_fr > self.min_side_clearance:
+                self.twist.angular.z = -self.turn_speed * clearance_factor
+            else:
+                # If neither side has enough clearance, turn towards the side with more space
+                self.twist.angular.z = (self.turn_speed * clearance_factor) if dist_fl > dist_fr else (-self.turn_speed * clearance_factor)
 
     def get_sector_distances(self, msg: LaserScan):
         """Get minimum distances in front sectors."""
@@ -242,11 +262,18 @@ class FastExplorerNode(Node):
         idx_front = int(front_rad / angle_increment)
         idx_side = int(front_side_rad / angle_increment)
         
-        # Get minimum distances in each sector, with minimal averaging to be more responsive
-        def get_min_average(readings, num_readings=2):  # Reduced averaging to 2 readings
+        # Get minimum distances in each sector, with minimal averaging
+        def get_min_average(readings, num_readings=2):
             valid = sorted([r for r in readings if range_min_thresh < r < range_max_thresh and math.isfinite(r)])
             if not valid:
                 return range_max_thresh
+            # Take minimum of averages from different parts of the sector
+            if len(valid) > 4:
+                # Split readings into two parts and get average of minimums
+                mid = len(valid) // 2
+                avg1 = sum(valid[:num_readings]) / min(len(valid[:mid]), num_readings)
+                avg2 = sum(valid[mid:mid+num_readings]) / min(len(valid[mid:]), num_readings)
+                return min(avg1, avg2)
             return sum(valid[:num_readings]) / min(len(valid), num_readings)
         
         # Get front ranges (both positive and negative angles)
