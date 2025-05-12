@@ -14,6 +14,8 @@ class ExplorationState(Enum):
     FINDING_SPACE = auto()    # Initial state - looking for open space
     NAVIGATING = auto()       # Moving to target
     AVOIDING = auto()         # Avoiding obstacles
+    TURNING = auto()          # Executing 180-degree turn
+    RECOVERING = auto()       # Returning to exploration path
 
 class FastExplorerNode(Node):
 
@@ -88,6 +90,16 @@ class FastExplorerNode(Node):
         self.get_logger().info("Starting exploration - searching for open space!")
         self.set_next_target()
 
+        # Corner boxes that need 180-degree turn
+        self.corner_boxes = {1, 4, 13, 16}
+        
+        # Recovery tracking
+        self.recovery_target_x = 0.0
+        self.recovery_target_y = 0.0
+        self.pre_avoid_state = None
+        self.turn_start_angle = 0.0
+        self.turn_target_angle = 0.0
+
     def set_next_target(self):
         """Set the next target box to explore."""
         if len(self.visited_boxes) >= len(self.boxes_to_explore):
@@ -131,14 +143,31 @@ class FastExplorerNode(Node):
         if current_box in self.boxes_to_explore and current_box not in self.visited_boxes:
             self.visited_boxes.add(current_box)
             self.get_logger().info(f"Visited box {current_box}. Total boxes visited: {len(self.visited_boxes)}")
+            
+            # If we're in a corner box, initiate 180-degree turn
+            if current_box in self.corner_boxes:
+                self.get_logger().info("Corner box reached - initiating 180-degree turn")
+                self.current_state = ExplorationState.TURNING
+                self.turn_start_angle = self.theta_z
+                self.turn_target_angle = self.normalize_angle(self.theta_z + math.pi)
+                return
+            
             self.set_next_target()
 
         # Calculate distance and direction to target
-        dx = self.target_x - self.x
-        dy = self.target_y - self.y
+        if self.current_state == ExplorationState.RECOVERING:
+            dx = self.recovery_target_x - self.x
+            dy = self.recovery_target_y - self.y
+        else:
+            dx = self.target_x - self.x
+            dy = self.target_y - self.y
+            
         distance = math.sqrt(dx*dx + dy*dy)
         
         if distance < self.position_tolerance:
+            if self.current_state == ExplorationState.RECOVERING:
+                self.get_logger().info("Recovery complete - resuming normal navigation")
+                self.current_state = ExplorationState.NAVIGATING
             self.set_next_target()
         else:
             self.move_to_target(dx, dy, distance)
@@ -195,11 +224,15 @@ class FastExplorerNode(Node):
             else:
                 self.update_navigation()
         elif self.current_state == ExplorationState.AVOIDING:
-            if dist_f > (0.60 + self.robot_radius):
-                self.current_state = ExplorationState.NAVIGATING
-                self.update_navigation()
-            else:
+            self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
+        elif self.current_state == ExplorationState.TURNING:
+            self.handle_turning()
+        elif self.current_state == ExplorationState.RECOVERING:
+            if dist_f < (0.45 + self.robot_radius):  # Obstacle during recovery
+                self.current_state = ExplorationState.AVOIDING
                 self.handle_obstacle_avoidance(dist_f, dist_fl, dist_fr)
+            else:
+                self.update_navigation()
 
         self.cmd_vel_pub.publish(self.twist)
 
@@ -219,7 +252,20 @@ class FastExplorerNode(Node):
             self.twist.angular.z = self.search_turn_speed
 
     def handle_obstacle_avoidance(self, dist_f, dist_fl, dist_fr):
-        """Simple obstacle avoidance."""
+        """Enhanced obstacle avoidance with path recovery."""
+        if self.current_state != ExplorationState.AVOIDING:
+            # Store current target for recovery
+            self.recovery_target_x = self.target_x
+            self.recovery_target_y = self.target_y
+            self.pre_avoid_state = self.current_state
+        
+        # If we find open space while avoiding
+        if dist_f > self.open_space_threshold and max(dist_fl, dist_fr) > self.open_space_threshold:
+            self.get_logger().info("Found open space - entering recovery mode")
+            self.current_state = ExplorationState.RECOVERING
+            return
+            
+        # Standard obstacle avoidance
         self.twist.linear.x = 0.0
         # Turn in direction with more space
         self.twist.angular.z = self.max_angular_speed if dist_fl > dist_fr else -self.max_angular_speed
@@ -301,6 +347,29 @@ class FastExplorerNode(Node):
             self.stop_robot()
             self.timer.cancel()
             rclpy.shutdown()
+
+    def normalize_angle(self, angle):
+        """Normalize angle to [-pi, pi]."""
+        while angle > math.pi:
+            angle -= 2 * math.pi
+        while angle < -math.pi:
+            angle += 2 * math.pi
+        return angle
+
+    def handle_turning(self):
+        """Handle 180-degree turn."""
+        # Calculate remaining angle to turn
+        angle_diff = self.normalize_angle(self.turn_target_angle - self.theta_z)
+        
+        if abs(angle_diff) < 0.1:  # Turn complete
+            self.get_logger().info("180-degree turn complete")
+            self.current_state = ExplorationState.NAVIGATING
+            self.set_next_target()
+            return
+        
+        # Execute turn
+        self.twist.linear.x = 0.0
+        self.twist.angular.z = self.max_angular_speed if angle_diff > 0 else -self.max_angular_speed
 
 def main(args=None):
     rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
