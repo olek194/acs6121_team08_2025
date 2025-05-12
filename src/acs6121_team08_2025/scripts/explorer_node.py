@@ -139,38 +139,45 @@ class FastExplorerNode(Node):
         """Update navigation state and set appropriate velocities."""
         current_box = self.get_current_box()
         
-        # Mark current box as visited if it's in our target list
-        if current_box in self.boxes_to_explore and current_box not in self.visited_boxes:
-            self.visited_boxes.add(current_box)
-            self.get_logger().info(f"Visited box {current_box}. Total boxes visited: {len(self.visited_boxes)}")
-            
-            # If we're in a corner box, initiate 180-degree turn
-            if current_box in self.corner_boxes:
-                self.get_logger().info("Corner box reached - initiating 180-degree turn")
-                self.current_state = ExplorationState.TURNING
-                self.turn_start_angle = self.theta_z
-                self.turn_target_angle = self.normalize_angle(self.theta_z + math.pi)
-                return
-            
-            self.set_next_target()
-
-        # Calculate distance and direction to target
+        # Calculate distance to current target
         if self.current_state == ExplorationState.RECOVERING:
             dx = self.recovery_target_x - self.x
             dy = self.recovery_target_y - self.y
         else:
             dx = self.target_x - self.x
             dy = self.target_y - self.y
-            
+        
         distance = math.sqrt(dx*dx + dy*dy)
         
-        if distance < self.position_tolerance:
-            if self.current_state == ExplorationState.RECOVERING:
-                self.get_logger().info("Recovery complete - resuming normal navigation")
-                self.current_state = ExplorationState.NAVIGATING
-            self.set_next_target()
-        else:
-            self.move_to_target(dx, dy, distance)
+        # Mark current box as visited if we're close enough
+        if current_box in self.boxes_to_explore and current_box not in self.visited_boxes:
+            if distance < self.position_tolerance:
+                self.visited_boxes.add(current_box)
+                self.get_logger().info(f"Visited box {current_box}. Total boxes visited: {len(self.visited_boxes)}")
+                
+                # If we're in a corner box, initiate 180-degree turn
+                if current_box in self.corner_boxes:
+                    self.get_logger().info("Corner box reached - initiating 180-degree turn")
+                    self.current_state = ExplorationState.TURNING
+                    self.turn_start_angle = self.theta_z
+                    self.turn_target_angle = self.normalize_angle(self.theta_z + math.pi)
+                    return
+                
+                # Set next target and continue
+                if self.set_next_target():
+                    self.current_state = ExplorationState.NAVIGATING
+                return
+        
+        # Handle recovery completion
+        if self.current_state == ExplorationState.RECOVERING and distance < self.position_tolerance:
+            self.get_logger().info("Recovery complete - resuming normal navigation")
+            self.current_state = ExplorationState.NAVIGATING
+            if not self.set_next_target():
+                self.stop_robot()
+            return
+        
+        # Continue moving to target
+        self.move_to_target(dx, dy, distance)
 
     def move_to_target(self, dx, dy, distance):
         """Move directly towards target."""
@@ -178,16 +185,16 @@ class FastExplorerNode(Node):
         target_angle = math.atan2(dy, dx)
         
         # Calculate angle difference
-        angle_diff = target_angle - self.theta_z
-        # Normalize to [-pi, pi]
-        while angle_diff > math.pi:
-            angle_diff -= 2 * math.pi
-        while angle_diff < -math.pi:
-            angle_diff += 2 * math.pi
+        angle_diff = self.normalize_angle(target_angle - self.theta_z)
             
-        # Full speed ahead with gentle course corrections
-        self.twist.linear.x = self.max_linear_speed
-        self.twist.angular.z = max(-0.5, min(0.5, angle_diff))
+        # If we're facing roughly the right direction, move forward
+        if abs(angle_diff) < 0.3:  # ~17 degrees tolerance
+            self.twist.linear.x = self.max_linear_speed
+            self.twist.angular.z = max(-0.3, min(0.3, angle_diff))  # Small corrections
+        else:
+            # Turn to face target first
+            self.twist.linear.x = 0.0
+            self.twist.angular.z = max(-0.8, min(0.8, angle_diff))
 
     def odom_callback(self, msg: Odometry):
         """Update robot's position and orientation."""
@@ -263,12 +270,15 @@ class FastExplorerNode(Node):
         if dist_f > self.open_space_threshold and max(dist_fl, dist_fr) > self.open_space_threshold:
             self.get_logger().info("Found open space - entering recovery mode")
             self.current_state = ExplorationState.RECOVERING
+            self.twist.linear.x = self.max_linear_speed  # Move forward when space found
+            self.twist.angular.z = 0.0
             return
             
         # Standard obstacle avoidance
-        self.twist.linear.x = 0.0
+        self.twist.linear.x = self.cautious_linear_speed if dist_f > (0.6 + self.robot_radius) else 0.0
         # Turn in direction with more space
-        self.twist.angular.z = self.max_angular_speed if dist_fl > dist_fr else -self.max_angular_speed
+        turn_speed = min(self.max_angular_speed, max(0.5, 1.0 - dist_f))  # Proportional turn speed
+        self.twist.angular.z = turn_speed if dist_fl > dist_fr else -turn_speed
 
     def get_sector_distances(self, msg: LaserScan):
         """Get minimum distances in front sectors."""
@@ -364,12 +374,15 @@ class FastExplorerNode(Node):
         if abs(angle_diff) < 0.1:  # Turn complete
             self.get_logger().info("180-degree turn complete")
             self.current_state = ExplorationState.NAVIGATING
-            self.set_next_target()
+            if not self.set_next_target():
+                self.stop_robot()
+            self.twist.angular.z = 0.0  # Stop turning
             return
         
         # Execute turn
         self.twist.linear.x = 0.0
-        self.twist.angular.z = self.max_angular_speed if angle_diff > 0 else -self.max_angular_speed
+        turn_speed = min(self.max_angular_speed, max(0.5, abs(angle_diff)))  # Proportional turn speed
+        self.twist.angular.z = turn_speed if angle_diff > 0 else -turn_speed
 
 def main(args=None):
     rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
