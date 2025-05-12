@@ -48,15 +48,15 @@ class PatternExplorerNode(Node):
         
         # Navigation parameters
         self.position_tolerance = 0.2 # Tolerance for reaching first box
-        self.obstacle_threshold = 0.5 # Distance to trigger avoidance
+        self.obstacle_threshold = 0.75 # Distance to trigger avoidance (Increased)
         self.clear_threshold = 0.6    # Distance to consider obstacle cleared
         self.open_space_threshold = 1.0 # For initial space finding
         
         # Speeds
-        self.max_linear_speed = 0.26
+        self.max_linear_speed = 0.26 # Max straight speed (Confirmed)
         self.cautious_linear_speed = 0.15 # Used when exiting avoidance
         self.max_angular_speed = 1.82
-        self.search_turn_speed = 0.8     # Speed for FINDING_SPACE and AVOIDING turns
+        self.search_turn_speed = 1.82     # Speed for FINDING_SPACE and AVOIDING turns (Increased)
         self.align_turn_speed = 0.5      # Speed for 90-degree alignment turn
         
         # LiDAR Sector Angles (degrees) - Simplified
