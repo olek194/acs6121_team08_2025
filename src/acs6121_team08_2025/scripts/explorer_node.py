@@ -8,6 +8,7 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import LaserScan
 import math
+import time # Import time for MOVING_MIDDLE duration
 from enum import Enum, auto
 
 class ExplorationState(Enum):
@@ -16,6 +17,12 @@ class ExplorationState(Enum):
     ALIGNING_PERIMETER = auto() # Turn 90deg left after reaching first box
     FOLLOWING_PERIMETER = auto() # Go straight along the perimeter
     AVOIDING = auto()            # Stop and turn away from obstacle
+    # New states for corner pattern
+    CORNER_TURNING = auto()      # Performing 180 turn at corner
+    MOVING_OPPOSITE = auto()     # Moving back after 180 turn
+    TURNING_MIDDLE = auto()      # Turning 90deg towards arena center (approx)
+    MOVING_MIDDLE = auto()       # Moving towards center for a duration
+    FINAL_LEFT_TURN = auto()     # Final 90deg left turn before resuming perimeter follow
 
 class PatternExplorerNode(Node):
 
@@ -49,8 +56,10 @@ class PatternExplorerNode(Node):
         # Navigation parameters
         self.position_tolerance = 0.2 # Tolerance for reaching first box
         self.obstacle_threshold = 0.75 # Distance to trigger avoidance (Increased)
-        self.clear_threshold = 0.6    # Distance to consider obstacle cleared
+        self.clear_threshold = 0.8 # Slightly increased clear threshold
         self.open_space_threshold = 1.0 # For initial space finding
+        self.corner_threshold = self.robot_radius + 0.15 # Threshold to detect wall/corner (e.g., 0.4m)
+        self.middle_move_duration = 2.0 # Seconds to move towards the middle
         
         # Speeds
         self.max_linear_speed = 0.26 # Max straight speed (Confirmed)
@@ -58,6 +67,7 @@ class PatternExplorerNode(Node):
         self.max_angular_speed = 1.82
         self.search_turn_speed = 1.82     # Speed for FINDING_SPACE and AVOIDING turns (Increased)
         self.align_turn_speed = 0.5      # Speed for 90-degree alignment turn
+        self.corner_turn_speed = 1.0 # Moderate speed for 180/90 turns in pattern
         
         # LiDAR Sector Angles (degrees) - Simplified
         self.front_angle = 15            # Narrower front angle for obstacle detection
@@ -67,6 +77,7 @@ class PatternExplorerNode(Node):
         self.current_state = ExplorationState.FINDING_SPACE
         self.target_angle = 0.0          # Used for alignment turn
         self.initial_box_reached = False
+        self.state_start_time = 0.0 # To track duration in MOVING_MIDDLE
         
         # Path planning (only for first box and tracking)
         self.target_box = 1 # Start with Box 1
@@ -92,15 +103,25 @@ class PatternExplorerNode(Node):
         
         self.get_logger().info(f"Starting exploration pattern. Initial target: Box {self.target_box}")
 
+    # --- State Transition Helper ---
+    def change_state(self, new_state):
+        """Helper to change state and log, potentially reset timers."""
+        if self.current_state != new_state:
+            self.get_logger().info(f"Changing state from {self.current_state.name} to {new_state.name}")
+            self.current_state = new_state
+            # Reset state timer if transitioning to a timed state
+            if new_state == ExplorationState.MOVING_MIDDLE:
+                self.state_start_time = time.time()
+            # Reset twist command to be safe
+            self.twist.linear.x = 0.0
+            self.twist.angular.z = 0.0
+
     # --- State Handling Methods ---
 
     def handle_finding_space(self, dist_f):
         """Spin until front is clear."""
         if dist_f > self.open_space_threshold:
-            self.get_logger().info("Found open space. Proceeding to first box.")
-            self.current_state = ExplorationState.GOING_TO_FIRST_BOX
-            self.twist.linear.x = 0.0
-            self.twist.angular.z = 0.0
+            self.change_state(ExplorationState.GOING_TO_FIRST_BOX)
         else:
             self.twist.linear.x = 0.0
             self.twist.angular.z = self.search_turn_speed
@@ -112,66 +133,119 @@ class PatternExplorerNode(Node):
         distance = math.sqrt(dx*dx + dy*dy)
 
         if distance < self.position_tolerance:
-            self.get_logger().info(f"Reached vicinity of Box {self.target_box}. Aligning for perimeter follow.")
             self.initial_box_reached = True
-            self.current_state = ExplorationState.ALIGNING_PERIMETER
-            # Set target for 90-degree left turn
-            self.target_angle = self.normalize_angle(self.theta_z + math.pi / 2.0)
-            self.twist.linear.x = 0.0
-            self.twist.angular.z = 0.0 # Stop briefly before turning
+            self.target_angle = self.normalize_angle(self.theta_z + math.pi / 2.0) # Target for 90 L turn
+            self.change_state(ExplorationState.ALIGNING_PERIMETER)
         else:
-            # Use simplified move_to_target logic
             target_heading = math.atan2(dy, dx)
             angle_diff = self.normalize_angle(target_heading - self.theta_z)
-            
             if abs(angle_diff) < 0.3:
                 self.twist.linear.x = self.max_linear_speed
                 self.twist.angular.z = max(-0.3, min(0.3, angle_diff))
             else:
-                self.twist.linear.x = 0.0 # Turn first
+                self.twist.linear.x = 0.0
                 self.twist.angular.z = max(-0.8, min(0.8, angle_diff))
 
     def handle_aligning_perimeter(self):
         """Execute 90-degree left turn."""
         angle_diff = self.normalize_angle(self.target_angle - self.theta_z)
-        
-        if abs(angle_diff) < 0.1: # Turn complete
-            self.get_logger().info("Alignment turn complete. Following perimeter.")
-            self.current_state = ExplorationState.FOLLOWING_PERIMETER
-            self.twist.angular.z = 0.0
+        if abs(angle_diff) < 0.1:
+            self.change_state(ExplorationState.FOLLOWING_PERIMETER)
             self.twist.linear.x = self.max_linear_speed # Start moving forward
         else:
-            # Execute turn
             self.twist.linear.x = 0.0
             turn_speed = self.align_turn_speed
             self.twist.angular.z = turn_speed if angle_diff > 0 else -turn_speed
 
     def handle_following_perimeter(self, dist_f):
-        """Move straight, check for obstacles."""
-        if dist_f < self.obstacle_threshold:
+        """Move straight, check for obstacles or corners."""
+        if dist_f < self.corner_threshold: # Corner/Wall detected
+            self.get_logger().info("Corner/Wall detected. Initiating 180 turn.")
+            self.target_angle = self.normalize_angle(self.theta_z + math.pi) # Target for 180 turn
+            self.change_state(ExplorationState.CORNER_TURNING)
+        elif dist_f < self.obstacle_threshold: # Obstacle detected
             self.get_logger().info(f"Obstacle detected (dist: {dist_f:.2f}m). Switching to AVOIDING.")
-            self.current_state = ExplorationState.AVOIDING
-            self.twist.linear.x = 0.0 # Stop immediately
-            # Angular velocity will be set in the next call to AVOIDING handler
+            self.change_state(ExplorationState.AVOIDING)
         else:
             self.twist.linear.x = self.max_linear_speed
-            self.twist.angular.z = 0.0 # Go straight
+            self.twist.angular.z = 0.0
 
     def handle_avoiding(self, dist_f, dist_fl, dist_fr):
-        """Stop and turn away from obstacle."""
+        """Stop and turn away from obstacle. Return to FOLLOWING_PERIMETER."""
         if dist_f > self.clear_threshold:
             self.get_logger().info("Obstacle cleared. Resuming perimeter following.")
-            self.current_state = ExplorationState.FOLLOWING_PERIMETER
-            self.twist.linear.x = self.cautious_linear_speed # Start moving cautiously
-            self.twist.angular.z = 0.0
+            self.change_state(ExplorationState.FOLLOWING_PERIMETER)
+            self.twist.linear.x = self.cautious_linear_speed
         else:
-            # Keep turning away
             self.twist.linear.x = 0.0
             turn_direction = 1 if dist_fl > dist_fr else -1
-            if abs(dist_fl - dist_fr) < 0.1:
-                turn_direction = 1 # Tie-breaker: turn left
+            if abs(dist_fl - dist_fr) < 0.1: turn_direction = 1
             self.twist.angular.z = turn_direction * self.search_turn_speed
             self.get_logger().debug(f"Avoiding. Turning {'left' if turn_direction > 0 else 'right'}. F:{dist_f:.2f} FL:{dist_fl:.2f} FR:{dist_fr:.2f}")
+
+    # --- New State Handlers for Corner Pattern ---
+
+    def handle_corner_turning(self):
+        """Handle 180-degree turn at corner."""
+        angle_diff = self.normalize_angle(self.target_angle - self.theta_z)
+        if abs(angle_diff) < 0.1:
+            self.change_state(ExplorationState.MOVING_OPPOSITE)
+            self.twist.linear.x = self.max_linear_speed # Start moving back
+        else:
+            self.twist.linear.x = 0.0
+            turn_speed = self.corner_turn_speed
+            self.twist.angular.z = turn_speed if angle_diff > 0 else -turn_speed
+
+    def handle_moving_opposite(self, dist_f):
+        """Move straight after 180 turn, check for obstacle."""
+        if dist_f < self.corner_threshold: # Hit opposite wall/obstacle
+            self.get_logger().info("Opposite obstacle detected. Turning towards middle.")
+            self.target_angle = self.normalize_angle(self.theta_z + math.pi / 2.0) # Turn 90 Left relative to current heading
+            self.change_state(ExplorationState.TURNING_MIDDLE)
+        elif dist_f < self.obstacle_threshold: # Unexpected obstacle
+             self.get_logger().warning("Unexpected obstacle while MOVING_OPPOSITE. Switching to AVOIDING.")
+             # When avoidance finishes, it will go back to FOLLOWING_PERIMETER, disrupting the pattern.
+             # This is a simplification for now.
+             self.change_state(ExplorationState.AVOIDING)
+        else:
+            self.twist.linear.x = self.max_linear_speed
+            self.twist.angular.z = 0.0
+
+    def handle_turning_middle(self):
+        """Handle 90-degree turn towards middle."""
+        angle_diff = self.normalize_angle(self.target_angle - self.theta_z)
+        if abs(angle_diff) < 0.1:
+            self.change_state(ExplorationState.MOVING_MIDDLE)
+            self.twist.linear.x = self.max_linear_speed # Start moving towards middle
+        else:
+            self.twist.linear.x = 0.0
+            turn_speed = self.corner_turn_speed
+            self.twist.angular.z = turn_speed if angle_diff > 0 else -turn_speed
+
+    def handle_moving_middle(self):
+        """Move towards middle for a fixed duration."""
+        elapsed_time = time.time() - self.state_start_time
+        if elapsed_time >= self.middle_move_duration:
+            self.get_logger().info(f"Moved towards middle for {elapsed_time:.1f}s. Making final left turn.")
+            self.target_angle = self.normalize_angle(self.theta_z + math.pi / 2.0) # Final 90 Left turn
+            self.change_state(ExplorationState.FINAL_LEFT_TURN)
+        else:
+            # Obstacle check during move? Add later if needed, for now just move.
+            # We could add a check here similar to MOVING_OPPOSITE to switch to AVOIDING
+            self.twist.linear.x = self.max_linear_speed
+            self.twist.angular.z = 0.0
+
+    def handle_final_left_turn(self):
+        """Handle final 90-degree left turn."""
+        angle_diff = self.normalize_angle(self.target_angle - self.theta_z)
+        if abs(angle_diff) < 0.1:
+            self.get_logger().info("Final left turn complete. Resuming perimeter following.")
+            self.change_state(ExplorationState.FOLLOWING_PERIMETER)
+            self.twist.linear.x = self.max_linear_speed # Resume moving
+        else:
+            self.twist.linear.x = 0.0
+            turn_speed = self.corner_turn_speed
+            self.twist.angular.z = turn_speed if angle_diff > 0 else -turn_speed
 
     # --- Callbacks and Helpers ---
 
@@ -183,25 +257,35 @@ class PatternExplorerNode(Node):
         dist_f, dist_fl, dist_fr = self.get_sector_distances(msg)
 
         # State-specific logic triggered by LiDAR
-        if self.current_state == ExplorationState.FINDING_SPACE:
+        current_state_copy = self.current_state # Avoid issues if state changes mid-logic
+        
+        if current_state_copy == ExplorationState.FINDING_SPACE:
             self.handle_finding_space(dist_f)
-        elif self.current_state == ExplorationState.FOLLOWING_PERIMETER:
+        elif current_state_copy == ExplorationState.FOLLOWING_PERIMETER:
             self.handle_following_perimeter(dist_f)
-        elif self.current_state == ExplorationState.AVOIDING:
+        elif current_state_copy == ExplorationState.AVOIDING:
             self.handle_avoiding(dist_f, dist_fl, dist_fr)
-        elif self.current_state == ExplorationState.GOING_TO_FIRST_BOX:
-             # Check for obstacles even when going to the first box
+        elif current_state_copy == ExplorationState.MOVING_OPPOSITE:
+             self.handle_moving_opposite(dist_f)
+        elif current_state_copy == ExplorationState.GOING_TO_FIRST_BOX:
             if dist_f < self.obstacle_threshold:
-                 self.get_logger().warning("Obstacle detected while going to first box! Switching to AVOIDING.")
-                 self.current_state = ExplorationState.AVOIDING
-                 # We will lose the target box, but prioritize safety
-                 self.twist.linear.x = 0.0
-            # Actual movement logic is in odom_callback based update
+                 self.get_logger().warning("Obstacle detected while GOING_TO_FIRST_BOX! Switching to AVOIDING.")
+                 # This will likely interrupt getting to the first box correctly.
+                 self.change_state(ExplorationState.AVOIDING)
+        elif current_state_copy == ExplorationState.MOVING_MIDDLE:
+             if dist_f < self.obstacle_threshold: # Basic obstacle check
+                  self.get_logger().warning("Obstacle detected while MOVING_MIDDLE. Switching to AVOIDING.")
+                  self.change_state(ExplorationState.AVOIDING)
 
-        # Note: GOING_TO_FIRST_BOX and ALIGNING_PERIMETER primarily update based on odometry/internal logic
-        # They don't directly react to lidar unless an obstacle forces AVOIDING state.
+        # States primarily driven by odom/internal logic: ALIGNING_PERIMETER, CORNER_TURNING, TURNING_MIDDLE, FINAL_LEFT_TURN
+        # MOVING_MIDDLE is driven by timer, but can be interrupted by LiDAR
 
-        self.cmd_vel_pub.publish(self.twist)
+        # Only publish if the state didn't change, otherwise the new state handler will set twist
+        if self.current_state == current_state_copy: 
+             self.cmd_vel_pub.publish(self.twist)
+        # If state did change, the new handler might have already set twist, publish it here
+        elif self.current_state != ExplorationState.AVOIDING: # Avoid double publish if avoiding handler already did
+             self.cmd_vel_pub.publish(self.twist)
 
     def odom_callback(self, msg: Odometry):
         """Update robot pose and handle state logic based on position/orientation."""
@@ -232,54 +316,75 @@ class PatternExplorerNode(Node):
                      # rclpy.shutdown()
 
         # State logic dependent on odometry
-        if self.current_state == ExplorationState.GOING_TO_FIRST_BOX:
+        current_state_copy = self.current_state
+        
+        if current_state_copy == ExplorationState.GOING_TO_FIRST_BOX:
             self.handle_going_to_first_box()
-        elif self.current_state == ExplorationState.ALIGNING_PERIMETER:
+        elif current_state_copy == ExplorationState.ALIGNING_PERIMETER:
             self.handle_aligning_perimeter()
+        elif current_state_copy == ExplorationState.CORNER_TURNING:
+            self.handle_corner_turning()
+        elif current_state_copy == ExplorationState.TURNING_MIDDLE:
+            self.handle_turning_middle()
+        elif current_state_copy == ExplorationState.MOVING_MIDDLE:
+            self.handle_moving_middle() # Checks timer
+        elif current_state_copy == ExplorationState.FINAL_LEFT_TURN:
+            self.handle_final_left_turn()
+            
+        # Publish twist if state didn't change during odom processing
+        if self.current_state == current_state_copy:
+             self.cmd_vel_pub.publish(self.twist)
+        # elif self.current_state != ExplorationState.AVOIDING:
+        #      self.cmd_vel_pub.publish(self.twist)
 
     def timer_callback(self):
         """Check if exploration time is up."""
-        if self.shutdown_flag: # Check if shutdown already initiated
+        if self.shutdown_flag:
             return
             
         try:
             current_time = self.get_clock().now()
             elapsed_time = (current_time - self.start_time).nanoseconds / 1e9
             
-            # Log progress every 10 seconds
-            # Check elapsed_time > 1 to avoid spamming at start
-            if elapsed_time > 1 and int(elapsed_time) % 10 == 0 and abs(elapsed_time - int(elapsed_time)) < 0.15:
+            log_interval = 10 # seconds
+            # Log state less frequently to avoid spam
+            if elapsed_time > 1 and int(elapsed_time) % log_interval == 0 and abs(elapsed_time - int(elapsed_time)) < 0.15:
                  self.get_logger().info(f"Time: {elapsed_time:.1f}/{self.exploration_duration:.1f}s. State: {self.current_state.name}. Visited: {len(self.visited_boxes)}/{len(self.boxes_to_explore)}.")
 
             if elapsed_time >= self.exploration_duration:
                 self.get_logger().info(f"Exploration time ({self.exploration_duration}s) complete!")
                 self.get_logger().info(f"Visited {len(self.visited_boxes)} boxes: {sorted(list(self.visited_boxes))}")
                 self.stop_robot()
-                self.shutdown_flag = True # Signal shutdown
-                self.timer.cancel()
-                # Initiate shutdown sequence cleanly
-                # Allow some time for stop command to publish
-                shutdown_timer = self.create_timer(0.5, self.initiate_shutdown)
-                return
+                self.shutdown_flag = True 
+                if self.timer: self.timer.cancel()
+                # Use a short delay before shutting down ROS to allow stop command to publish
+                self.create_timer(0.5, self.initiate_shutdown)
+                return 
                 
         except Exception as e:
-            self.get_logger().error(f"Error in timer callback: {str(e)}")
+            self.get_logger().error(f"Error in timer callback: {str(e)}", exc_info=True)
             self.stop_robot()
             self.shutdown_flag = True
-            self.timer.cancel()
-            self.initiate_shutdown() # Attempt shutdown
+            if self.timer: self.timer.cancel()
+            self.initiate_shutdown() 
             
     def initiate_shutdown(self):
         """Callback to actually call rclpy.shutdown after a short delay."""
-        if rclpy.ok():
+        # Cancel this timer itself
+        caller_timer = self._timers[-1] # Assumes this is the last timer created
+        if caller_timer is not None and not caller_timer.is_canceled():
+             caller_timer.cancel()
+             
+        if rclpy.ok() and not self.shutdown_flag:
+             # Check shutdown_flag again as it might be set by other means between timer creation and execution
             self.get_logger().info("Timer initiating ROS shutdown.")
+            self.shutdown_flag = True # Ensure flag is set
+            self.stop_robot() # Send stop again just in case
             rclpy.shutdown()
-        # Cancel this timer itself if it hasn't been destroyed yet
-        if hasattr(self, 'shutdown_timer') and self.shutdown_timer:
-             try:
-                 self.shutdown_timer.cancel()
-             except Exception as e:
-                  self.get_logger().warning(f"Could not cancel shutdown timer: {e}")
+        elif not rclpy.ok():
+             self.get_logger().warning("Shutdown initiator called but RCLPY not OK.")
+        elif self.shutdown_flag:
+             self.get_logger().info("Shutdown initiator called but shutdown already in progress.")
 
     def get_current_box(self):
         """Calculate which box the robot is in. Returns box number or None."""
