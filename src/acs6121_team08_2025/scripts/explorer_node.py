@@ -46,17 +46,26 @@ class FastExplorerNode(Node):
         # Velocity message
         self.twist = Twist()
 
+        # Corner detection and recovery
+        self.in_corner = False
+        self.corner_rotation_start = None
+        self.corner_rotation_target = None
+        self.corner_recovery_start_time = None
+        self.corner_recovery_duration = 5.0  # seconds to complete 360 turn
+
         # --- Tunable Parameters ---
         # Distances (meters) - Increased safety margins
         self.critical_front_distance = 0.55 # Increased from 0.40
         self.warning_front_distance = 0.85  # Increased from 0.70
         self.side_avoid_distance = 0.60     # Increased from 0.45
+        self.corner_detection_distance = 0.70  # Distance threshold for corner detection
 
         # Speeds
         self.max_linear_speed = 0.28
         self.cautious_linear_speed = 0.18
         self.max_angular_speed = 1.9
         self.gentle_turn_speed = 0.8
+        self.corner_rotation_speed = 1.0  # Speed for 360 rotation
 
         # LiDAR Sector Angles (degrees)
         self.front_angle = 15
@@ -190,9 +199,44 @@ class FastExplorerNode(Node):
 
         return dist_f, dist_fl, dist_fr, dist_l, dist_r
 
+    def is_in_corner(self, dist_f, dist_fl, dist_fr, dist_l, dist_r):
+        """Detect if robot is in a corner based on distance readings."""
+        # A corner is detected when we have close obstacles in adjacent sectors
+        front_close = dist_f < self.corner_detection_distance
+        left_close = dist_l < self.corner_detection_distance
+        right_close = dist_r < self.corner_detection_distance
+        front_left_close = dist_fl < self.corner_detection_distance
+        front_right_close = dist_fr < self.corner_detection_distance
+
+        # Different corner scenarios
+        corner_scenario_1 = front_close and (left_close or right_close)
+        corner_scenario_2 = front_left_close and front_right_close
+        corner_scenario_3 = (front_left_close and left_close) or (front_right_close and right_close)
+
+        return corner_scenario_1 or corner_scenario_2 or corner_scenario_3
+
+    def handle_corner_recovery(self):
+        """Execute a 360-degree turn to recover from a corner."""
+        if self.corner_recovery_start_time is None:
+            self.corner_recovery_start_time = self.get_clock().now()
+            self.get_logger().warn("Starting corner recovery - executing 360-degree turn")
+            
+        time_elapsed = (self.get_clock().now() - self.corner_recovery_start_time).nanoseconds / 1e9
+        
+        if time_elapsed < self.corner_recovery_duration:
+            # Execute 360-degree turn
+            self.twist.linear.x = 0.0
+            self.twist.angular.z = self.corner_rotation_speed
+            return True
+        else:
+            # Corner recovery complete
+            self.in_corner = False
+            self.corner_recovery_start_time = None
+            self.get_logger().info("Corner recovery complete")
+            return False
+
     def lidar_callback(self, msg: LaserScan):
         """Main control loop for obstacle avoidance and exploration."""
-        # Remove check for self.is_stopped related to timer
         if self.shutdown_flag:
             return
 
@@ -207,6 +251,17 @@ class FastExplorerNode(Node):
 
         target_linear_x = self.max_linear_speed
         target_angular_z = 0.0
+
+        # Check if we're in a corner
+        if not self.in_corner and self.is_in_corner(dist_f, dist_fl, dist_fr, dist_l, dist_r):
+            self.in_corner = True
+            self.get_logger().warn("Corner detected! Starting recovery maneuver")
+
+        # Handle corner recovery if needed
+        if self.in_corner:
+            if self.handle_corner_recovery():
+                self.cmd_vel_pub.publish(self.twist)
+                return
 
         # --- Obstacle Avoidance Logic (Priority 1) ---
         if dist_f < self.critical_front_distance:
