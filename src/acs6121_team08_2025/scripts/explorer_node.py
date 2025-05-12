@@ -8,6 +8,12 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry  # Added for position tracking
 from sensor_msgs.msg import LaserScan
 import math
+import enum
+
+class RobotState(enum.Enum):
+    SEARCHING_FOR_WALL = 0
+    ALIGNING_WITH_WALL = 1
+    FOLLOWING_WALL = 2
 
 class FastExplorerNode(Node):
 
@@ -25,11 +31,11 @@ class FastExplorerNode(Node):
             Odometry, "odom", self.odom_callback, 10
         )
 
-        # Timer for 90-second runtime - REMOVED
-        # self.start_time = self.get_clock().now() # Start timer immediately - REMOVED
-        # self.runtime_limit = 90.0  # seconds - REMOVED
-        # self.timer = self.create_timer(0.1, self.check_runtime) - REMOVED
-        self.is_stopped = False # Still used for shutdown sequence
+        # Timer for 90-second runtime
+        self.start_time = self.get_clock().now()  # Start timer immediately
+        self.runtime_limit = 90.0  # seconds
+        self.timer = self.create_timer(0.1, self.check_runtime)
+        self.is_stopped = False
         self.shutdown_flag = False
 
         # Position tracking (similar to move_square.py)
@@ -46,44 +52,56 @@ class FastExplorerNode(Node):
         # Velocity message
         self.twist = Twist()
 
-        # Corner detection and recovery
-        self.in_corner = False
-        self.corner_rotation_start = None
-        self.corner_rotation_target = None
-        self.corner_recovery_start_time = None
-        self.corner_recovery_duration = 5.0  # seconds to complete 360 turn
-
         # --- Tunable Parameters ---
-        # Distances (meters) - Increased safety margins
-        self.critical_front_distance = 0.55 # Increased from 0.40
-        self.warning_front_distance = 0.85  # Increased from 0.70
-        self.side_avoid_distance = 0.60     # Increased from 0.45
-        self.corner_detection_distance = 0.70  # Distance threshold for corner detection
+        # Distances (meters)
+        self.critical_front_distance = 0.40 # Keep for safety
+        self.wall_detection_distance = 0.60 # Distance to trigger alignment
+        self.target_wall_distance = 0.35    # Desired distance from wall
+        self.wall_follow_tolerance = 0.10   # Allowed deviation from target distance
+        self.side_safety_distance = 0.25    # Minimum allowed side distance
 
         # Speeds
-        self.max_linear_speed = 0.28
-        self.cautious_linear_speed = 0.18
-        self.max_angular_speed = 1.9
-        self.gentle_turn_speed = 0.8
-        self.corner_rotation_speed = 1.0  # Speed for 360 rotation
+        self.search_linear_speed = 0.25
+        self.wall_following_speed = 0.20
+        self.alignment_angular_speed = 0.8
+        self.max_angular_speed = 1.5       # Reduced slightly for smoother following
+        self.wall_follow_kp = 2.5          # Proportional gain for wall distance control
 
         # LiDAR Sector Angles (degrees)
         self.front_angle = 15
         self.front_side_angle = 45
-        self.side_angle_start = 50
-        self.side_angle_end = 130
+        self.side_angle_start = 50 # Used for left wall following
+        self.side_angle_end = 130 # Used for left wall following
 
-        self.get_logger().info(f"'{self.get_name()}' node initialized.")
+        # State Machine
+        self.state = RobotState.SEARCHING_FOR_WALL
+        self.get_logger().info(f"Starting in state: {self.state.name}")
+
+        self.get_logger().info(f"'{self.get_name()}' node initialized for wall following.")
         
-        # Start moving immediately
-        self.start_moving()
+        # No longer starting immediately, wait for first lidar scan
+        # self.start_moving() # Removed
 
     def start_moving(self):
-        """Start the robot moving forward."""
-        self.twist.linear.x = self.max_linear_speed
-        self.twist.angular.z = 0.0
-        self.cmd_vel_pub.publish(self.twist)
-        self.get_logger().info("Starting exploration! No time limit.")
+        """DEPRECATED for wall following - logic is in lidar_callback now."""
+        # This function is no longer the primary way to start movement.
+        # The state machine in lidar_callback handles initial movement.
+        self.get_logger().warn("start_moving() called, but movement is state-driven.")
+        pass # Do nothing, handled by state machine
+
+    def check_runtime(self):
+        """Check if runtime limit exceeded and stop the robot."""
+        if self.is_stopped or self.shutdown_flag:
+            return
+            
+        elapsed_time = (self.get_clock().now() - self.start_time).nanoseconds / 1e9
+        if elapsed_time >= self.runtime_limit:
+            self.get_logger().info(f"{self.runtime_limit} seconds elapsed. Stopping exploration.")
+            self.get_logger().info(f"Visited {len(self.zones_visited)} zones: {sorted(list(self.zones_visited))}")
+            self.stop_robot()
+            self.is_stopped = True
+            if self.timer is not None and not self.timer.canceled:
+                self.timer.cancel()
 
     def stop_robot(self):
         """Sends a zero velocity command to stop the robot."""
@@ -199,151 +217,104 @@ class FastExplorerNode(Node):
 
         return dist_f, dist_fl, dist_fr, dist_l, dist_r
 
-    def is_in_corner(self, dist_f, dist_fl, dist_fr, dist_l, dist_r):
-        """Detect if robot is in a corner based on distance readings."""
-        # A corner is detected when we have close obstacles in adjacent sectors
-        front_close = dist_f < self.corner_detection_distance
-        left_close = dist_l < self.corner_detection_distance
-        right_close = dist_r < self.corner_detection_distance
-        front_left_close = dist_fl < self.corner_detection_distance
-        front_right_close = dist_fr < self.corner_detection_distance
-
-        # Different corner scenarios
-        corner_scenario_1 = front_close and (left_close or right_close)
-        corner_scenario_2 = front_left_close and front_right_close
-        corner_scenario_3 = (front_left_close and left_close) or (front_right_close and right_close)
-
-        return corner_scenario_1 or corner_scenario_2 or corner_scenario_3
-
-    def handle_corner_recovery(self):
-        """Execute a 360-degree turn to recover from a corner."""
-        if self.corner_recovery_start_time is None:
-            self.corner_recovery_start_time = self.get_clock().now()
-            self.get_logger().warn("Starting corner recovery - executing 360-degree turn")
-            
-        time_elapsed = (self.get_clock().now() - self.corner_recovery_start_time).nanoseconds / 1e9
-        
-        if time_elapsed < self.corner_recovery_duration:
-            # Execute 360-degree turn
-            self.twist.linear.x = 0.0
-            self.twist.angular.z = self.corner_rotation_speed
-            return True
-        else:
-            # Corner recovery complete
-            self.in_corner = False
-            self.corner_recovery_start_time = None
-            self.get_logger().info("Corner recovery complete")
-            return False
-
     def lidar_callback(self, msg: LaserScan):
-        """Main control loop for obstacle avoidance and exploration."""
-        if self.shutdown_flag:
+        """Main control loop implementing the wall following state machine."""
+        if self.is_stopped or self.shutdown_flag:
             return
 
         dist_f, dist_fl, dist_fr, dist_l, dist_r = self.get_sector_distances(msg)
 
-        # Log all distances for debugging
+        # Log distances and current state
         self.get_logger().debug(
-            f"Distances (m) - Front: {dist_f:.2f}, "
-            f"Front-Left: {dist_fl:.2f}, Front-Right: {dist_fr:.2f}, "
-            f"Left: {dist_l:.2f}, Right: {dist_r:.2f}"
+            f"State: {self.state.name} | Distances (m) - F:{dist_f:.2f}, FL:{dist_fl:.2f}, FR:{dist_fr:.2f}, L:{dist_l:.2f}, R:{dist_r:.2f}"
         )
 
-        target_linear_x = self.max_linear_speed
+        target_linear_x = 0.0
         target_angular_z = 0.0
 
-        # Check if we're in a corner
-        if not self.in_corner and self.is_in_corner(dist_f, dist_fl, dist_fr, dist_l, dist_r):
-            self.in_corner = True
-            self.get_logger().warn("Corner detected! Starting recovery maneuver")
+        # --- State Machine Logic ---
 
-        # Handle corner recovery if needed
-        if self.in_corner:
-            if self.handle_corner_recovery():
-                self.cmd_vel_pub.publish(self.twist)
-                return
-
-        # --- Obstacle Avoidance Logic (Priority 1) ---
-        if dist_f < self.critical_front_distance:
-            self.get_logger().warn(
-                f"CRITICAL front obstacle: {dist_f:.2f}m < {self.critical_front_distance}m. "
-                f"FL: {dist_fl:.2f}m, FR: {dist_fr:.2f}m"
-            )
-            target_linear_x = 0.0
-            if dist_fl > dist_fr:
-                target_angular_z = self.max_angular_speed
-                self.get_logger().info(f"Turning LEFT - more space on left ({dist_fl:.2f}m > {dist_fr:.2f}m)")
+        if self.state == RobotState.SEARCHING_FOR_WALL:
+            # Move forward until a wall is detected in front
+            if dist_f < self.wall_detection_distance:
+                # Wall detected, stop and switch to alignment
+                self.get_logger().info(f"Wall detected at {dist_f:.2f}m. Switching to ALIGNING_WITH_WALL.")
+                self.state = RobotState.ALIGNING_WITH_WALL
+                target_linear_x = 0.0
+                target_angular_z = self.alignment_angular_speed # Start turning left
             else:
+                # Keep searching
+                target_linear_x = self.search_linear_speed
+                target_angular_z = 0.0 # Go straight
+
+        elif self.state == RobotState.ALIGNING_WITH_WALL:
+            # Turn left until roughly parallel to the wall (using left sensor)
+            # We aim to have the left sensor see the wall at the target distance
+            # and the front sensor clear enough to start moving along the wall.
+            if dist_l < (self.target_wall_distance + self.wall_follow_tolerance) and dist_f > self.critical_front_distance * 1.5:
+                 # Good enough alignment and front is clear, start following
+                self.get_logger().info(f"Alignment achieved (Left dist: {dist_l:.2f}m). Switching to FOLLOWING_WALL.")
+                self.state = RobotState.FOLLOWING_WALL
+                target_linear_x = self.wall_following_speed # Start moving forward slowly
+                target_angular_z = 0.0 # Correct angle later in FOLLOWING state
+            elif dist_f < self.critical_front_distance:
+                 # Too close to wall while turning, maybe turn sharper right temporarily? Or just stop turning?
+                 self.get_logger().warn("Too close to front wall during alignment. Stopping turn.")
+                 target_linear_x = 0.0
+                 target_angular_z = 0.0 # Stop turning to avoid collision
+                 # Consider a small backup or right turn here if it gets stuck
+            else:
+                # Continue turning left
+                target_linear_x = 0.0
+                target_angular_z = self.alignment_angular_speed
+
+        elif self.state == RobotState.FOLLOWING_WALL:
+            # Follow the left wall, maintaining target distance
+            if dist_f < self.critical_front_distance:
+                # Obstacle directly ahead (e.g., corner), turn right sharply
+                self.get_logger().warn(f"Obstacle ahead during wall following (Dist: {dist_f:.2f}m). Turning right.")
+                target_linear_x = 0.0 # Stop forward motion
                 target_angular_z = -self.max_angular_speed
-                self.get_logger().info(f"Turning RIGHT - more space on right ({dist_fr:.2f}m > {dist_fl:.2f}m)")
+            elif dist_fl < self.target_wall_distance:
+                 # Inner corner detected by front-left sensor, turn right more gradually
+                 self.get_logger().debug(f"Inner corner detected (FL: {dist_fl:.2f}m). Nudging right.")
+                 target_linear_x = self.wall_following_speed * 0.5 # Slow down slightly
+                 # Reduce turn based on how close FL is
+                 error_fl = self.target_wall_distance - dist_fl
+                 target_angular_z = -self.max_angular_speed * (error_fl / self.target_wall_distance) * 0.8 # Turn right
+            elif dist_l > self.target_wall_distance * 2.5: # Lost the wall completely (e.g. large opening / outer corner)
+                 self.get_logger().info(f"Lost left wall (Dist: {dist_l:.2f}m). Re-searching.")
+                 self.state = RobotState.SEARCHING_FOR_WALL # Go back to searching
+                 target_linear_x = self.search_linear_speed * 0.5 # Move forward slowly while searching
+                 target_angular_z = 0.0
+                 # Alternative: could try a specific turn-left maneuver here to find wall again
 
-        elif dist_f < self.warning_front_distance:
-            self.get_logger().info(
-                f"Warning front obstacle: {dist_f:.2f}m < {self.warning_front_distance}m. "
-                f"FL: {dist_fl:.2f}m, FR: {dist_fr:.2f}m"
-            )
-            target_linear_x = self.cautious_linear_speed
-            if dist_fl > dist_fr:
-                target_angular_z = self.gentle_turn_speed
-                self.get_logger().debug(f"Gentle LEFT turn - more space on left ({dist_fl:.2f}m > {dist_fr:.2f}m)")
             else:
-                target_angular_z = -self.gentle_turn_speed
-                self.get_logger().debug(f"Gentle RIGHT turn - more space on right ({dist_fr:.2f}m > {dist_fl:.2f}m)")
+                # Wall detected on left, apply proportional control for distance
+                error = self.target_wall_distance - dist_l
+                target_angular_z = self.wall_follow_kp * error
 
-        # --- Wall Following Logic (Priority 2 - When Front is Clear) ---
-        else:
-            target_linear_x = self.max_linear_speed # Go forward
-            target_angular_z = 0.0 # Default no turn
+                # Ensure safety distance is maintained
+                if dist_l < self.side_safety_distance:
+                    self.get_logger().warn(f"Too close to left wall ({dist_l:.2f}m < {self.side_safety_distance}m). Forcing right turn.")
+                    target_angular_z = -self.max_angular_speed * 0.6 # Force a moderate turn right
 
-            # Define target distance for right wall following
-            target_wall_distance = self.side_avoid_distance + 0.15 # Target slightly further than critical avoid distance
-            wall_follow_gain = 1.5 # Proportional gain for adjustment
+                # Clamp angular velocity
+                target_angular_z = max(-self.max_angular_speed, min(target_angular_z, self.max_angular_speed))
 
-            # Check if we have a somewhat reliable reading for the right wall
-            if dist_r < (msg.range_max * 0.8): # Check if right wall detected within 80% of max range
-                error = target_wall_distance - dist_r
-                # Proportional control: positive error means too far -> turn right (-ve angular_z)
-                # Negative error means too close -> turn left (+ve angular_z)
-                target_angular_z = wall_follow_gain * error
-                self.get_logger().debug(
-                    f"Wall Following (Right): dist_r={dist_r:.2f}m, target={target_wall_distance:.2f}m, "
-                    f"error={error:.2f}m, angular_z={target_angular_z:.2f}"
-                )
-            else:
-                # Lost the right wall, gently turn right to find it
-                target_angular_z = -self.gentle_turn_speed * 0.5 # Negative for right turn
-                self.get_logger().debug(f"Lost right wall (dist_r={dist_r:.2f}m), turning right gently ({target_angular_z:.2f})")
+                # Maintain forward speed
+                target_linear_x = self.wall_following_speed
 
-            # --- Left Wall Safety Check (Priority 3 - Override wall following if needed) ---
-            # Even if following right wall, avoid hitting the left wall if too close
-            if dist_l < self.side_avoid_distance:
-                # If too close to left wall, prioritize turning away from it (right turn)
-                # Calculate a stronger nudge away from the left wall
-                error_l = self.side_avoid_distance - dist_l
-                left_nudge_angular_z = -self.gentle_turn_speed * (error_l / self.side_avoid_distance) * 2.0 # Stronger nudge right
-                self.get_logger().warn(
-                    f"LEFT WALL TOO CLOSE ({dist_l:.2f}m < {self.side_avoid_distance}m)! Overriding wall follow. Nudging right ({left_nudge_angular_z:.2f})"
-                )
-                # Override the right wall following turn command ONLY if the left nudge is significant
-                target_angular_z = min(target_angular_z, left_nudge_angular_z) # Allow stronger right turn if needed
 
-        # Log final command before clipping
+        # Log final command
         self.get_logger().debug(
-            f"Command (Before Clip): linear={target_linear_x:.2f} m/s, "
+            f"Command: linear={target_linear_x:.2f} m/s, "
             f"angular={target_angular_z:.2f} rad/s"
         )
 
-        # Apply velocities with limits
+        # Apply velocities
         self.twist.linear.x = target_linear_x
-        # Clip angular velocity to max speeds
-        self.twist.angular.z = max(-self.max_angular_speed, min(target_angular_z, self.max_angular_speed))
-        
-        # Log final command after clipping
-        self.get_logger().debug(
-            f"Command (Final): linear={self.twist.linear.x:.2f} m/s, "
-            f"angular={self.twist.angular.z:.2f} rad/s"
-        )
-
+        self.twist.angular.z = target_angular_z
         self.cmd_vel_pub.publish(self.twist)
 
     def on_shutdown(self):
@@ -351,11 +322,10 @@ class FastExplorerNode(Node):
         if not self.shutdown_flag:
             self.get_logger().info("Node shutting down. Stopping robot...")
             self.stop_robot()
-            # Removed timer cancellation
-            # if self.timer is not None and not self.timer.canceled:
-            #     self.get_logger().info("Cancelling runtime timer.")
-            #     self.timer.cancel()
-            self.is_stopped = True # Keep for shutdown logic
+            if self.timer is not None and not self.timer.canceled:
+                self.get_logger().info("Cancelling runtime timer.")
+                self.timer.cancel()
+            self.is_stopped = True
             self.shutdown_flag = True
 
 def main(args=None):
