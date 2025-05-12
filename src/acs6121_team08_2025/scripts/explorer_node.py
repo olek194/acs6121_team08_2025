@@ -25,11 +25,11 @@ class FastExplorerNode(Node):
             Odometry, "odom", self.odom_callback, 10
         )
 
-        # Timer for 90-second runtime
-        self.start_time = self.get_clock().now()  # Start timer immediately
-        self.runtime_limit = 90.0  # seconds
-        self.timer = self.create_timer(0.1, self.check_runtime)
-        self.is_stopped = False
+        # Timer for 90-second runtime - REMOVED
+        # self.start_time = self.get_clock().now() # Start timer immediately - REMOVED
+        # self.runtime_limit = 90.0  # seconds - REMOVED
+        # self.timer = self.create_timer(0.1, self.check_runtime) - REMOVED
+        self.is_stopped = False # Still used for shutdown sequence
         self.shutdown_flag = False
 
         # Position tracking (similar to move_square.py)
@@ -47,10 +47,10 @@ class FastExplorerNode(Node):
         self.twist = Twist()
 
         # --- Tunable Parameters ---
-        # Distances (meters)
-        self.critical_front_distance = 0.40
-        self.warning_front_distance = 0.70
-        self.side_avoid_distance = 0.45
+        # Distances (meters) - Increased safety margins
+        self.critical_front_distance = 0.55 # Increased from 0.40
+        self.warning_front_distance = 0.85  # Increased from 0.70
+        self.side_avoid_distance = 0.60     # Increased from 0.45
 
         # Speeds
         self.max_linear_speed = 0.28
@@ -74,21 +74,7 @@ class FastExplorerNode(Node):
         self.twist.linear.x = self.max_linear_speed
         self.twist.angular.z = 0.0
         self.cmd_vel_pub.publish(self.twist)
-        self.get_logger().info("Starting exploration!")
-
-    def check_runtime(self):
-        """Check if runtime limit exceeded and stop the robot."""
-        if self.is_stopped or self.shutdown_flag:
-            return
-            
-        elapsed_time = (self.get_clock().now() - self.start_time).nanoseconds / 1e9
-        if elapsed_time >= self.runtime_limit:
-            self.get_logger().info(f"{self.runtime_limit} seconds elapsed. Stopping exploration.")
-            self.get_logger().info(f"Visited {len(self.zones_visited)} zones: {sorted(list(self.zones_visited))}")
-            self.stop_robot()
-            self.is_stopped = True
-            if self.timer is not None and not self.timer.canceled:
-                self.timer.cancel()
+        self.get_logger().info("Starting exploration! No time limit.")
 
     def stop_robot(self):
         """Sends a zero velocity command to stop the robot."""
@@ -206,7 +192,8 @@ class FastExplorerNode(Node):
 
     def lidar_callback(self, msg: LaserScan):
         """Main control loop for obstacle avoidance and exploration."""
-        if self.is_stopped or self.shutdown_flag:
+        # Remove check for self.is_stopped related to timer
+        if self.shutdown_flag:
             return
 
         dist_f, dist_fl, dist_fr, dist_l, dist_r = self.get_sector_distances(msg)
@@ -309,10 +296,11 @@ class FastExplorerNode(Node):
         if not self.shutdown_flag:
             self.get_logger().info("Node shutting down. Stopping robot...")
             self.stop_robot()
-            if self.timer is not None and not self.timer.canceled:
-                self.get_logger().info("Cancelling runtime timer.")
-                self.timer.cancel()
-            self.is_stopped = True
+            # Removed timer cancellation
+            # if self.timer is not None and not self.timer.canceled:
+            #     self.get_logger().info("Cancelling runtime timer.")
+            #     self.timer.cancel()
+            self.is_stopped = True # Keep for shutdown logic
             self.shutdown_flag = True
 
 def main(args=None):
