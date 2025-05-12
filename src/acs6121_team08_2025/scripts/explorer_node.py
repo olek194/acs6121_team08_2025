@@ -67,10 +67,10 @@ class PerimeterExplorerNode(Node):
 
         # --- Tunable Parameters ---
         # Distances (meters)
-        self.critical_front_distance = 0.40
-        self.warning_front_distance = 0.70
-        self.side_avoid_distance = 0.45
-        self.perimeter_follow_distance = 0.55  # Target distance from wall when following perimeter
+        self.critical_front_distance = 0.55
+        self.warning_front_distance = 0.85
+        self.side_avoid_distance = 0.60
+        self.perimeter_follow_distance = 0.65
 
         # Speeds
         self.max_linear_speed = 0.28
