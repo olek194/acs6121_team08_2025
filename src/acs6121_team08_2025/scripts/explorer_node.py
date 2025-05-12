@@ -260,33 +260,55 @@ class FastExplorerNode(Node):
 
     def handle_obstacle_avoidance(self, dist_f, dist_fl, dist_fr):
         """Enhanced obstacle avoidance with path recovery."""
-        if self.current_state != ExplorationState.AVOIDING:
-            # Store current target for recovery
+        # Check if we were previously avoiding
+        was_avoiding = (self.current_state == ExplorationState.AVOIDING)
+        
+        # If we find open space while avoiding, enter recovery
+        # Require front and at least one side to be clear enough to proceed
+        if dist_f > self.open_space_threshold and max(dist_fl, dist_fr) > (0.5 + self.robot_radius): # Check if sides have enough clearance
+            if was_avoiding:
+                self.get_logger().info("Found open space - entering recovery mode")
+                self.current_state = ExplorationState.RECOVERING
+                # Set recovery velocity - move forward cautiously
+                self.twist.linear.x = self.cautious_linear_speed
+                self.twist.angular.z = 0.0
+            else:
+                 # Store current target for recovery if just entering avoid state
+                 self.recovery_target_x = self.target_x
+                 self.recovery_target_y = self.target_y
+                 self.pre_avoid_state = self.current_state
+                 self.current_state = ExplorationState.AVOIDING # Ensure we are in AVOIDING state
+                 # Start turning immediately
+                 self.twist.linear.x = 0.0
+                 turn_direction = 1 if dist_fl > dist_fr else -1
+                 self.twist.angular.z = turn_direction * self.search_turn_speed # Use search turn speed
+            return
+            
+        # If still avoiding (no clear path found yet)
+        if not was_avoiding: # Store recovery target if just entered AVOIDING
             self.recovery_target_x = self.target_x
             self.recovery_target_y = self.target_y
             self.pre_avoid_state = self.current_state
-        
-        # If we find open space while avoiding
-        if dist_f > self.open_space_threshold and max(dist_fl, dist_fr) > self.open_space_threshold:
-            self.get_logger().info("Found open space - entering recovery mode")
-            self.current_state = ExplorationState.RECOVERING
-            self.twist.linear.x = self.max_linear_speed  # Move forward when space found
-            self.twist.angular.z = 0.0
-            return
+            self.current_state = ExplorationState.AVOIDING
             
-        # Standard obstacle avoidance
-        self.twist.linear.x = self.cautious_linear_speed if dist_f > (0.6 + self.robot_radius) else 0.0
-        # Turn in direction with more space
-        turn_speed = min(self.max_angular_speed, max(0.5, 1.0 - dist_f))  # Proportional turn speed
-        self.twist.angular.z = turn_speed if dist_fl > dist_fr else -turn_speed
+        self.get_logger().info(f"Avoiding obstacle: F:{dist_f:.2f} FL:{dist_fl:.2f} FR:{dist_fr:.2f}")
+        self.twist.linear.x = 0.0 # Stop forward motion while turning
+        
+        # Turn in direction with more space using a consistent speed
+        turn_direction = 1 if dist_fl > dist_fr else -1
+        # If distances are very close, prefer turning left slightly (arbitrary tie-break)
+        if abs(dist_fl - dist_fr) < 0.1: 
+            turn_direction = 1
+            
+        self.twist.angular.z = turn_direction * self.search_turn_speed # Use a moderate, consistent turn speed
 
     def get_sector_distances(self, msg: LaserScan):
-        """Get minimum distances in front sectors."""
+        """Get minimum distances in front sectors using simple minimum."""
         ranges = msg.ranges
         angle_increment = msg.angle_increment
         num_ranges = len(ranges)
         range_min_thresh = msg.range_min + 0.02
-        range_max_thresh = msg.range_max
+        range_max_thresh = msg.range_max - 0.02 # Add buffer for max range
 
         # Calculate indices for front sectors
         front_rad = math.radians(self.front_angle)
@@ -295,28 +317,19 @@ class FastExplorerNode(Node):
         idx_front = int(front_rad / angle_increment)
         idx_side = int(front_side_rad / angle_increment)
         
-        # Get minimum distances in each sector, with minimal averaging
-        def get_min_average(readings, num_readings=2):
-            valid = sorted([r for r in readings if range_min_thresh < r < range_max_thresh and math.isfinite(r)])
-            if not valid:
-                return range_max_thresh
-            # Take minimum of averages from different parts of the sector
-            if len(valid) > 4:
-                # Split readings into two parts and get average of minimums
-                mid = len(valid) // 2
-                avg1 = sum(valid[:num_readings]) / min(len(valid[:mid]), num_readings)
-                avg2 = sum(valid[mid:mid+num_readings]) / min(len(valid[mid:]), num_readings)
-                return min(avg1, avg2)
-            return sum(valid[:num_readings]) / min(len(valid), num_readings)
+        # Helper to get minimum valid distance in a slice
+        def get_min_dist(readings):
+            valid = [r for r in readings if range_min_thresh < r < range_max_thresh and math.isfinite(r)]
+            return min(valid) if valid else range_max_thresh
         
         # Get front ranges (both positive and negative angles)
         front_ranges = ranges[:idx_front] + ranges[-idx_front:]
         front_left_ranges = ranges[idx_front:idx_side]
         front_right_ranges = ranges[-idx_side:-idx_front]
         
-        dist_f = get_min_average(front_ranges)
-        dist_fl = get_min_average(front_left_ranges)
-        dist_fr = get_min_average(front_right_ranges)
+        dist_f = get_min_dist(front_ranges)
+        dist_fl = get_min_dist(front_left_ranges)
+        dist_fr = get_min_dist(front_right_ranges)
 
         return dist_f, dist_fl, dist_fr
 
