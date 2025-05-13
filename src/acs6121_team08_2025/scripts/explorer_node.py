@@ -22,7 +22,12 @@ class PatternExplorerNode(Node):
 
     def __init__(self):
         super().__init__("pattern_explorer_node")
-
+        
+        # Enable debug logging
+        self.debug = True
+        self.last_debug_time = time.time()
+        self.debug_interval = 0.5  # Log every 0.5 seconds
+        
         # Publisher and Subscribers
         self.cmd_vel_pub = self.create_publisher(Twist, "cmd_vel", 10)
         self.lidar_sub = self.create_subscription(
@@ -106,25 +111,26 @@ class PatternExplorerNode(Node):
 
     # --- State Transition Helper ---
     def change_state(self, new_state):
-        """Helper to change state, log, handle oscillation, potentially reset timers."""
+        """Helper to change state with debug logging."""
         if self.current_state != new_state:
-            self.get_logger().info(f"Changing state from {self.current_state.name} to {new_state.name}")
-            previous_state = self.current_state # Store before overwriting
+            self.debug_log(f"State change: {self.current_state.name} -> {new_state.name}")
             self.current_state = new_state
-
-            # Reset state timer if transitioning to MOVING_MIDDLE
-            if new_state == ExplorationState.MOVING_TO_BOX:
-                self.state_start_time = time.time()
-                
-            # Reset twist command when changing to *most* new states (except maybe AVOIDING where immediate turn is set)
-            if new_state != ExplorationState.AVOIDING: # Avoid resetting twist if avoiding handler sets it immediately
-                 self.twist.linear.x = 0.0
-                 self.twist.angular.z = 0.0
 
     # --- State Handling Methods ---
 
+    def debug_log(self, message):
+        """Helper for debug logging with rate limiting."""
+        if not self.debug:
+            return
+        current_time = time.time()
+        if not hasattr(self, 'last_debug_time') or (current_time - self.last_debug_time) >= self.debug_interval:
+            self.get_logger().info(f"DEBUG: {message}")
+            self.last_debug_time = current_time
+
     def handle_finding_space(self, dist_f):
         """Spin until front is clear."""
+        self.debug_log(f"FINDING_SPACE - dist_f: {dist_f:.2f}, threshold: {self.open_space_threshold}")
+        
         if dist_f > self.open_space_threshold:
             # Calculate initial heading to first box
             dx = self.target_x - self.x
@@ -132,16 +138,25 @@ class PatternExplorerNode(Node):
             self.target_angle = math.atan2(dy, dx)
             angle_diff = self.normalize_angle(self.target_angle - self.theta_z)
             
+            self.debug_log(f"Found clear space - Current pos: ({self.x:.2f}, {self.y:.2f})")
+            self.debug_log(f"Target box {self.target_box} at: ({self.target_x:.2f}, {self.target_y:.2f})")
+            self.debug_log(f"Angles - Target: {math.degrees(self.target_angle):.1f}°, Current: {math.degrees(self.theta_z):.1f}°, Diff: {math.degrees(angle_diff):.1f}°")
+            
             if abs(angle_diff) < self.angle_tolerance:
+                self.debug_log("Aligned with target, moving straight")
                 self.change_state(ExplorationState.MOVING_TO_BOX)
                 self.twist.linear.x = self.max_linear_speed
                 self.twist.angular.z = 0.0
             else:
+                self.debug_log(f"Need to rotate {math.degrees(angle_diff):.1f}° to align")
                 self.change_state(ExplorationState.ROTATING_TO_BOX)
                 self.twist.linear.x = 0.0
-                self.twist.angular.z = max(-self.rotate_turn_speed, 
-                                         min(self.rotate_turn_speed, angle_diff))
+                rotation_speed = max(-self.rotate_turn_speed, 
+                                   min(self.rotate_turn_speed, angle_diff))
+                self.twist.angular.z = rotation_speed
+                self.debug_log(f"Setting rotation speed to {rotation_speed:.2f}")
         else:
+            self.debug_log("Space not clear, continuing to search")
             self.twist.linear.x = 0.0
             self.twist.angular.z = self.search_turn_speed
 
@@ -153,28 +168,32 @@ class PatternExplorerNode(Node):
         target_heading = math.atan2(dy, dx)
         angle_diff = self.normalize_angle(target_heading - self.theta_z)
 
+        self.debug_log(f"MOVING_TO_BOX - Distance to target: {distance:.2f}, Angle diff: {math.degrees(angle_diff):.1f}°")
+        self.debug_log(f"Current pos: ({self.x:.2f}, {self.y:.2f}), Target: ({self.target_x:.2f}, {self.target_y:.2f})")
+
         if distance < self.position_tolerance:
-            # Reached target box, rotate to face next box
-            self.get_logger().info(f"Reached box {self.target_box}")
+            self.debug_log(f"Reached box {self.target_box}")
             next_box = self.get_next_target_box()
             if next_box:
                 next_x, next_y = self.box_positions[next_box]
                 self.target_angle = math.atan2(next_y - self.y, next_x - self.x)
+                self.debug_log(f"Next box: {next_box} at ({next_x:.2f}, {next_y:.2f})")
                 self.change_state(ExplorationState.ROTATING_TO_BOX)
             else:
+                self.debug_log("No more boxes to visit")
                 self.change_state(ExplorationState.STOPPED)
         elif dist_f < self.obstacle_threshold:
-            self.get_logger().info(f"Obstacle detected while moving to box {self.target_box}")
+            self.debug_log(f"Obstacle detected at distance: {dist_f:.2f}")
             self.change_state(ExplorationState.AVOIDING)
         else:
-            # Move towards target box
-            if abs(angle_diff) > self.angle_tolerance * 2:  # Wider tolerance during movement
+            if abs(angle_diff) > self.angle_tolerance * 2:
+                self.debug_log(f"Large angle difference ({math.degrees(angle_diff):.1f}°), correcting")
                 self.twist.linear.x = self.cautious_linear_speed
                 self.twist.angular.z = max(-0.8, min(0.8, angle_diff))
-                self.get_logger().debug(f"Correcting angle: diff={angle_diff:.2f}, x={self.twist.linear.x:.2f}, z={self.twist.angular.z:.2f}")
             else:
                 self.twist.linear.x = self.max_linear_speed
                 self.twist.angular.z = max(-0.3, min(0.3, angle_diff))
+            self.debug_log(f"Moving - Linear: {self.twist.linear.x:.2f}, Angular: {self.twist.angular.z:.2f}")
 
     def handle_avoiding(self, dist_f, dist_fl, dist_fr):
         """Stop and turn away from obstacle."""
@@ -206,20 +225,24 @@ class PatternExplorerNode(Node):
         current_target_angle = math.atan2(dy, dx)
         angle_diff = self.normalize_angle(current_target_angle - self.theta_z)
         
-        self.get_logger().debug(f"Rotating: target={math.degrees(current_target_angle):.1f}°, current={math.degrees(self.theta_z):.1f}°, diff={math.degrees(angle_diff):.1f}°")
+        self.debug_log(f"ROTATING_TO_BOX - Current pos: ({self.x:.2f}, {self.y:.2f})")
+        self.debug_log(f"Target: ({self.target_x:.2f}, {self.target_y:.2f}), Box: {self.target_box}")
+        self.debug_log(f"Angles - Target: {math.degrees(current_target_angle):.1f}°, Current: {math.degrees(self.theta_z):.1f}°, Diff: {math.degrees(angle_diff):.1f}°")
         
         if abs(angle_diff) < self.angle_tolerance:
+            self.debug_log("Rotation complete, starting movement")
             self.change_state(ExplorationState.MOVING_TO_BOX)
             self.twist.linear.x = self.max_linear_speed
             self.twist.angular.z = 0.0
-            self.get_logger().info("Rotation complete, moving to box")
         else:
             self.twist.linear.x = 0.0
             # Use proportional control for smoother rotation
+            kp = 0.5  # Proportional gain
+            rotation_speed = kp * angle_diff
             rotation_speed = max(-self.rotate_turn_speed, 
-                               min(self.rotate_turn_speed, angle_diff))
+                               min(self.rotate_turn_speed, rotation_speed))
             self.twist.angular.z = rotation_speed
-            self.get_logger().debug(f"Rotating with speed: {rotation_speed:.2f}")
+            self.debug_log(f"Still rotating - speed: {rotation_speed:.2f}")
 
     # --- Callbacks and Helpers ---
 
