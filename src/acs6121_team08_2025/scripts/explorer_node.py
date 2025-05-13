@@ -126,9 +126,21 @@ class PatternExplorerNode(Node):
     def handle_finding_space(self, dist_f):
         """Spin until front is clear."""
         if dist_f > self.open_space_threshold:
-            self.change_state(ExplorationState.MOVING_TO_BOX)
-            self.twist.linear.x = self.max_linear_speed
-            self.twist.angular.z = 0.0
+            # Calculate initial heading to first box
+            dx = self.target_x - self.x
+            dy = self.target_y - self.y
+            self.target_angle = math.atan2(dy, dx)
+            angle_diff = self.normalize_angle(self.target_angle - self.theta_z)
+            
+            if abs(angle_diff) < self.angle_tolerance:
+                self.change_state(ExplorationState.MOVING_TO_BOX)
+                self.twist.linear.x = self.max_linear_speed
+                self.twist.angular.z = 0.0
+            else:
+                self.change_state(ExplorationState.ROTATING_TO_BOX)
+                self.twist.linear.x = 0.0
+                self.twist.angular.z = max(-self.rotate_turn_speed, 
+                                         min(self.rotate_turn_speed, angle_diff))
         else:
             self.twist.linear.x = 0.0
             self.twist.angular.z = self.search_turn_speed
@@ -156,12 +168,13 @@ class PatternExplorerNode(Node):
             self.change_state(ExplorationState.AVOIDING)
         else:
             # Move towards target box
-            if abs(angle_diff) < self.angle_tolerance:
+            if abs(angle_diff) > self.angle_tolerance * 2:  # Wider tolerance during movement
+                self.twist.linear.x = self.cautious_linear_speed
+                self.twist.angular.z = max(-0.8, min(0.8, angle_diff))
+                self.get_logger().debug(f"Correcting angle: diff={angle_diff:.2f}, x={self.twist.linear.x:.2f}, z={self.twist.angular.z:.2f}")
+            else:
                 self.twist.linear.x = self.max_linear_speed
                 self.twist.angular.z = max(-0.3, min(0.3, angle_diff))
-            else:
-                self.twist.linear.x = 0.0
-                self.twist.angular.z = max(-0.8, min(0.8, angle_diff))
 
     def handle_avoiding(self, dist_f, dist_fl, dist_fr):
         """Stop and turn away from obstacle."""
@@ -188,15 +201,25 @@ class PatternExplorerNode(Node):
 
     def handle_rotating_to_box(self):
         """Rotate to face the next target box."""
-        angle_diff = self.normalize_angle(self.target_angle - self.theta_z)
+        dx = self.target_x - self.x
+        dy = self.target_y - self.y
+        current_target_angle = math.atan2(dy, dx)
+        angle_diff = self.normalize_angle(current_target_angle - self.theta_z)
+        
+        self.get_logger().debug(f"Rotating: target={math.degrees(current_target_angle):.1f}°, current={math.degrees(self.theta_z):.1f}°, diff={math.degrees(angle_diff):.1f}°")
+        
         if abs(angle_diff) < self.angle_tolerance:
             self.change_state(ExplorationState.MOVING_TO_BOX)
             self.twist.linear.x = self.max_linear_speed
             self.twist.angular.z = 0.0
+            self.get_logger().info("Rotation complete, moving to box")
         else:
             self.twist.linear.x = 0.0
-            self.twist.angular.z = max(-self.rotate_turn_speed, 
-                                     min(self.rotate_turn_speed, angle_diff))
+            # Use proportional control for smoother rotation
+            rotation_speed = max(-self.rotate_turn_speed, 
+                               min(self.rotate_turn_speed, angle_diff))
+            self.twist.angular.z = rotation_speed
+            self.get_logger().debug(f"Rotating with speed: {rotation_speed:.2f}")
 
     # --- Callbacks and Helpers ---
 
@@ -207,6 +230,13 @@ class PatternExplorerNode(Node):
 
         dist_f, dist_fl, dist_fr = self.get_sector_distances(msg)
         current_state_copy = self.current_state
+        
+        # Log current state and distances periodically
+        if hasattr(self, 'last_log_time') and time.time() - self.last_log_time < 1.0:
+            pass
+        else:
+            self.last_log_time = time.time()
+            self.get_logger().debug(f"State: {current_state_copy.name}, Distances - F: {dist_f:.2f}, FL: {dist_fl:.2f}, FR: {dist_fr:.2f}")
         
         if current_state_copy == ExplorationState.FINDING_SPACE:
             self.handle_finding_space(dist_f)
@@ -222,6 +252,13 @@ class PatternExplorerNode(Node):
             
         if self.current_state == current_state_copy:
             self.cmd_vel_pub.publish(self.twist)
+            
+        # Log movement commands periodically
+        if hasattr(self, 'last_cmd_log_time') and time.time() - self.last_cmd_log_time < 1.0:
+            pass
+        else:
+            self.last_cmd_log_time = time.time()
+            self.get_logger().debug(f"Movement - Linear: {self.twist.linear.x:.2f}, Angular: {self.twist.angular.z:.2f}")
 
     def odom_callback(self, msg: Odometry):
         """Update robot pose and handle state logic based on position/orientation."""
