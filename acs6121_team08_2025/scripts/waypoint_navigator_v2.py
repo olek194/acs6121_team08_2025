@@ -50,6 +50,7 @@ class WaypointNavigator(Node):
         wp_x, wp_y = self.waypoints[self.current_waypoint_index]
         robot_x, robot_y = self.robot_position
         distance = ((wp_x - robot_x) ** 2 + (wp_y - robot_y) ** 2) ** 0.5
+        print(distance)
         return distance < threshold
 
 def main(args=None):
