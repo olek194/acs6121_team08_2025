@@ -12,9 +12,7 @@ import time # Import time for MOVING_MIDDLE duration
 from enum import Enum, auto
 
 class ExplorationState(Enum):
-    FINDING_SPACE = auto()       # Initial spin to find clear path
     MOVING_TO_BOX = auto()       # Moving to target box
-    AVOIDING = auto()            # Avoiding obstacles
     ROTATING_TO_BOX = auto()     # Rotating to face next box
     STOPPED = auto()             # Exploration complete
 
@@ -32,6 +30,26 @@ class PatternExplorerNode(Node):
         self.latest_dist_f = float('inf')
         self.latest_dist_fl = float('inf')
         self.latest_dist_fr = float('inf')
+        
+        # Movement control parameters
+        self.max_linear_speed = 0.26  # Max straight speed
+        self.min_linear_speed = 0.1    # Minimum speed during turns
+        self.max_angular_speed = 1.82
+        self.rotate_turn_speed = 0.5   # Speed for rotating to face next box
+        
+        # PID control for movement
+        self.angle_kp = 0.5  # Proportional gain for angle control
+        self.angle_ki = 0.0  # Integral gain (not used yet)
+        self.angle_kd = 0.1  # Derivative gain for damping
+        self.prev_angle_error = 0.0
+        self.angle_error_integral = 0.0
+        self.last_angle_update = time.time()
+        
+        # Navigation parameters
+        self.position_tolerance = 0.2   # Tolerance for reaching target box
+        self.angle_tolerance = 0.1      # Base tolerance for rotation alignment
+        self.moving_angle_tolerance = 0.3  # Wider tolerance during movement
+        self.obstacle_threshold = 0.5   # Distance to trigger rerouting
         
         # Publisher and Subscribers
         self.cmd_vel_pub = self.create_publisher(Twist, "cmd_vel", 10)
@@ -56,38 +74,6 @@ class PatternExplorerNode(Node):
         
         # Robot physical parameters
         self.robot_radius = 0.25
-        
-        # Movement control parameters
-        self.max_linear_speed = 0.26  # Max straight speed
-        self.cautious_linear_speed = 0.15  # Used when near target or after avoiding
-        self.min_linear_speed = 0.1    # Minimum speed during turns
-        self.max_angular_speed = 1.82
-        self.search_turn_speed = 1.82  # Speed for FINDING_SPACE and AVOIDING turns
-        self.rotate_turn_speed = 0.5   # Speed for rotating to face next box
-        
-        # PID control for movement
-        self.angle_kp = 0.5  # Proportional gain for angle control
-        self.angle_ki = 0.0  # Integral gain (not used yet)
-        self.angle_kd = 0.1  # Derivative gain for damping
-        self.prev_angle_error = 0.0
-        self.angle_error_integral = 0.0
-        self.last_angle_update = time.time()
-        
-        # Navigation parameters
-        self.position_tolerance = 0.2   # Tolerance for reaching target box
-        self.angle_tolerance = 0.1      # Base tolerance for rotation alignment
-        self.moving_angle_tolerance = 0.3  # Wider tolerance during movement
-        self.obstacle_threshold = 0.75  # Distance to trigger avoidance
-        self.clear_threshold = 0.8      # Distance to consider path clear
-        self.open_space_threshold = 1.0 # For initial space finding
-        
-        # LiDAR Sector Angles (degrees)
-        self.front_angle = 15         # Narrower front angle for obstacle detection
-        self.side_angle = 45          # Side angles for turning direction
-        
-        # State Machine
-        self.current_state = ExplorationState.FINDING_SPACE
-        self.target_angle = 0.0
         
         # Path planning
         self.target_box = 1 # Start with Box 1
@@ -122,6 +108,8 @@ class PatternExplorerNode(Node):
         self.exploration_duration = 90.0
         self.timer = self.create_timer(0.1, self.timer_callback)
         
+        # Start moving to first box immediately
+        self.current_state = ExplorationState.MOVING_TO_BOX
         self.get_logger().info(f"Starting exploration with path: {self.boxes_to_explore}")
 
     # --- State Transition Helper ---
@@ -194,39 +182,6 @@ class PatternExplorerNode(Node):
             
         return linear_speed, angle_correction, distance, math.degrees(angle_diff)
 
-    def handle_finding_space(self, dist_f):
-        """Spin until front is clear."""
-        self.debug_log(f"FINDING_SPACE - dist_f: {dist_f:.2f}, threshold: {self.open_space_threshold}")
-        
-        if dist_f > self.open_space_threshold:
-            # Calculate initial heading to first box
-            dx = self.target_x - self.x
-            dy = self.target_y - self.y
-            self.target_angle = math.atan2(dy, dx)
-            angle_diff = self.normalize_angle(self.target_angle - self.theta_z)
-            
-            self.debug_log(f"Found clear space - Current pos: ({self.x:.2f}, {self.y:.2f})")
-            self.debug_log(f"Target box {self.target_box} at: ({self.target_x:.2f}, {self.target_y:.2f})")
-            self.debug_log(f"Angles - Target: {math.degrees(self.target_angle):.1f}°, Current: {math.degrees(self.theta_z):.1f}°, Diff: {math.degrees(angle_diff):.1f}°")
-            
-            if abs(angle_diff) < self.angle_tolerance:
-                self.debug_log("Aligned with target, moving straight")
-                self.change_state(ExplorationState.MOVING_TO_BOX)
-                self.twist.linear.x = self.max_linear_speed
-                self.twist.angular.z = 0.0
-            else:
-                self.debug_log(f"Need to rotate {math.degrees(angle_diff):.1f}° to align")
-                self.change_state(ExplorationState.ROTATING_TO_BOX)
-                self.twist.linear.x = 0.0
-                rotation_speed = max(-self.rotate_turn_speed, 
-                                   min(self.rotate_turn_speed, angle_diff))
-                self.twist.angular.z = rotation_speed
-                self.debug_log(f"Setting rotation speed to {rotation_speed:.2f}")
-        else:
-            self.debug_log("Space not clear, continuing to search")
-            self.twist.linear.x = 0.0
-            self.twist.angular.z = self.search_turn_speed
-
     def handle_moving_to_box(self):
         """Move towards the current target box."""
         linear_speed, angular_speed, distance, angle_diff = self.calculate_movement_cmd(
@@ -251,34 +206,23 @@ class PatternExplorerNode(Node):
                 self.debug_log("No more boxes to visit")
                 self.change_state(ExplorationState.STOPPED)
         elif self.latest_dist_f < self.obstacle_threshold:
-            self.debug_log(f"Obstacle detected at distance: {self.latest_dist_f:.2f}")
-            self.change_state(ExplorationState.AVOIDING)
-        else:
-            self.twist.linear.x = linear_speed
-            self.twist.angular.z = angular_speed
-
-    def handle_avoiding(self, dist_f, dist_fl, dist_fr):
-        """Stop and turn away from obstacle."""
-        if dist_f > self.clear_threshold:
-            self.get_logger().info("Obstacle cleared. Finding alternate path.")
+            # Try to find alternate path through neighboring boxes
             current_box = self.get_current_box()
             if current_box and not self.rerouting:
-                # Try to find alternate path to target
+                self.debug_log(f"Obstacle detected, finding alternate path from box {current_box}")
                 self.alternate_path = self.find_alternate_path(current_box, self.target_box)
                 if self.alternate_path:
                     self.rerouting = True
                     self.alternate_path.pop(0)  # Remove current box
-                    self.update_target_box()
-                    self.change_state(ExplorationState.MOVING_TO_BOX)
+                    if self.alternate_path:
+                        next_box = self.alternate_path[0]
+                        self.target_x, self.target_y = self.box_positions[next_box]
+                        self.debug_log(f"Rerouting through box {next_box}")
                 else:
-                    self.get_logger().warning(f"No alternate path found to box {self.target_box}")
-            self.twist.linear.x = self.cautious_linear_speed
-            self.change_state(ExplorationState.MOVING_TO_BOX)
+                    self.debug_log(f"No alternate path found to box {self.target_box}")
         else:
-            self.twist.linear.x = 0.0
-            turn_direction = 1 if dist_fl > dist_fr else -1
-            if abs(dist_fl - dist_fr) < 0.1: turn_direction = 1
-            self.twist.angular.z = turn_direction * self.search_turn_speed
+            self.twist.linear.x = linear_speed
+            self.twist.angular.z = angular_speed
 
     def handle_rotating_to_box(self):
         """Rotate to face the next target box."""
@@ -310,16 +254,10 @@ class PatternExplorerNode(Node):
         # Update latest distances
         self.latest_dist_f, self.latest_dist_fl, self.latest_dist_fr = self.get_sector_distances(msg)
         
-        self.debug_log(f"LiDAR update - F: {self.latest_dist_f:.2f}, FL: {self.latest_dist_fl:.2f}, FR: {self.latest_dist_fr:.2f}")
-        
         current_state_copy = self.current_state
         
-        if current_state_copy == ExplorationState.FINDING_SPACE:
-            self.handle_finding_space(self.latest_dist_f)
-        elif current_state_copy == ExplorationState.MOVING_TO_BOX:
+        if current_state_copy == ExplorationState.MOVING_TO_BOX:
             self.handle_moving_to_box()
-        elif current_state_copy == ExplorationState.AVOIDING:
-            self.handle_avoiding(self.latest_dist_f, self.latest_dist_fl, self.latest_dist_fr)
         elif current_state_copy == ExplorationState.ROTATING_TO_BOX:
             self.handle_rotating_to_box()
         elif current_state_copy == ExplorationState.STOPPED:
