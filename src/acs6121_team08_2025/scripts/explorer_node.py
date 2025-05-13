@@ -28,6 +28,11 @@ class PatternExplorerNode(Node):
         self.last_debug_time = time.time()
         self.debug_interval = 0.5  # Log every 0.5 seconds
         
+        # Store latest LiDAR readings
+        self.latest_dist_f = float('inf')
+        self.latest_dist_fl = float('inf')
+        self.latest_dist_fr = float('inf')
+        
         # Publisher and Subscribers
         self.cmd_vel_pub = self.create_publisher(Twist, "cmd_vel", 10)
         self.lidar_sub = self.create_subscription(
@@ -160,7 +165,7 @@ class PatternExplorerNode(Node):
             self.twist.linear.x = 0.0
             self.twist.angular.z = self.search_turn_speed
 
-    def handle_moving_to_box(self, dist_f):
+    def handle_moving_to_box(self):
         """Move towards the current target box."""
         dx = self.target_x - self.x
         dy = self.target_y - self.y
@@ -182,8 +187,8 @@ class PatternExplorerNode(Node):
             else:
                 self.debug_log("No more boxes to visit")
                 self.change_state(ExplorationState.STOPPED)
-        elif dist_f < self.obstacle_threshold:
-            self.debug_log(f"Obstacle detected at distance: {dist_f:.2f}")
+        elif self.latest_dist_f < self.obstacle_threshold:
+            self.debug_log(f"Obstacle detected at distance: {self.latest_dist_f:.2f}")
             self.change_state(ExplorationState.AVOIDING)
         else:
             if abs(angle_diff) > self.angle_tolerance * 2:
@@ -251,22 +256,19 @@ class PatternExplorerNode(Node):
         if self.shutdown_flag:
             return
 
-        dist_f, dist_fl, dist_fr = self.get_sector_distances(msg)
+        # Update latest distances
+        self.latest_dist_f, self.latest_dist_fl, self.latest_dist_fr = self.get_sector_distances(msg)
+        
+        self.debug_log(f"LiDAR update - F: {self.latest_dist_f:.2f}, FL: {self.latest_dist_fl:.2f}, FR: {self.latest_dist_fr:.2f}")
+        
         current_state_copy = self.current_state
         
-        # Log current state and distances periodically
-        if hasattr(self, 'last_log_time') and time.time() - self.last_log_time < 1.0:
-            pass
-        else:
-            self.last_log_time = time.time()
-            self.get_logger().debug(f"State: {current_state_copy.name}, Distances - F: {dist_f:.2f}, FL: {dist_fl:.2f}, FR: {dist_fr:.2f}")
-        
         if current_state_copy == ExplorationState.FINDING_SPACE:
-            self.handle_finding_space(dist_f)
+            self.handle_finding_space(self.latest_dist_f)
         elif current_state_copy == ExplorationState.MOVING_TO_BOX:
-            self.handle_moving_to_box(dist_f)
+            self.handle_moving_to_box()
         elif current_state_copy == ExplorationState.AVOIDING:
-            self.handle_avoiding(dist_f, dist_fl, dist_fr)
+            self.handle_avoiding(self.latest_dist_f, self.latest_dist_fl, self.latest_dist_fr)
         elif current_state_copy == ExplorationState.ROTATING_TO_BOX:
             self.handle_rotating_to_box()
         elif current_state_copy == ExplorationState.STOPPED:
@@ -298,35 +300,32 @@ class PatternExplorerNode(Node):
         # Update visited boxes based on current position
         current_box = self.get_current_box()
         if current_box is not None and current_box in self.boxes_to_explore and current_box not in self.visited_boxes:
-             # Check distance to box center - only mark if reasonably close
-             box_x, box_y = self.box_positions[current_box]
-             dist_to_box_center = math.sqrt((self.x - box_x)**2 + (self.y - box_y)**2)
-             if dist_to_box_center < (self.box_size / 2.0): # Mark if within half the box size from center
-                 self.visited_boxes.add(current_box)
-                 self.get_logger().info(f"Entered and visited Box {current_box}. Total visited: {len(self.visited_boxes)}/{len(self.boxes_to_explore)} - {sorted(list(self.visited_boxes))}")
-                 
-                 # If we're following an alternate path and reached a box, update target
-                 if self.rerouting:
-                     if not self.alternate_path:  # Reached end of alternate path
-                         self.rerouting = False
-                         self.update_target_box()  # Resume normal sequence
-                     else:
-                         self.update_target_box()  # Continue on alternate path
-                 else:
-                     # Check if we should move to next box in sequence
-                     self.update_target_box()
+            # Check distance to box center - only mark if reasonably close
+            box_x, box_y = self.box_positions[current_box]
+            dist_to_box_center = math.sqrt((self.x - box_x)**2 + (self.y - box_y)**2)
+            if dist_to_box_center < (self.box_size / 2.0): # Mark if within half the box size from center
+                self.visited_boxes.add(current_box)
+                self.debug_log(f"Visited box {current_box}. Total: {len(self.visited_boxes)}/{len(self.boxes_to_explore)} - {sorted(list(self.visited_boxes))}")
+                
+                # If we're following an alternate path and reached a box, update target
+                if self.rerouting:
+                    if not self.alternate_path:  # Reached end of alternate path
+                        self.rerouting = False
+                        self.update_target_box()  # Resume normal sequence
+                    else:
+                        self.update_target_box()  # Continue on alternate path
+                else:
+                    # Check if we should move to next box in sequence
+                    self.update_target_box()
 
-        # State logic dependent on odometry
-        current_state_copy = self.current_state
-        
-        if current_state_copy == ExplorationState.MOVING_TO_BOX:
-            self.handle_moving_to_box(dist_f)
-        elif current_state_copy == ExplorationState.ROTATING_TO_BOX:
+        # Update movement based on current state
+        if self.current_state == ExplorationState.MOVING_TO_BOX:
+            self.handle_moving_to_box()
+        elif self.current_state == ExplorationState.ROTATING_TO_BOX:
             self.handle_rotating_to_box()
             
-        # Publish twist if state didn't change during odom processing
-        if self.current_state == current_state_copy:
-             self.cmd_vel_pub.publish(self.twist)
+        # Publish twist if needed
+        self.cmd_vel_pub.publish(self.twist)
 
     def timer_callback(self):
         """Check if exploration time is up."""
