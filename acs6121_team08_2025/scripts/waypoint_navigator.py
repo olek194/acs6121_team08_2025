@@ -6,7 +6,7 @@ from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 from rclpy.action import ActionClient
 
-STUCK_TIMEOUT = 8.0               # seconds
+STUCK_TIMEOUT = 10.0               # seconds
 
 class WaypointNavigator(Node):
     REL_WPS = [(-1.5, 1.5), (-0.5, 1.5), (0.5, 1.5), (1.5, 1.5),

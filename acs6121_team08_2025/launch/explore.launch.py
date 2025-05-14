@@ -7,10 +7,25 @@ from ament_index_python.packages import get_package_share_directory
 from launch.actions import SetEnvironmentVariable
 from launch_ros.substitutions import FindPackageShare
 from launch.substitutions import PathJoinSubstitution
+from launch.actions import RegisterEventHandler, OpaqueFunction
+from launch.event_handlers import OnShutdown
 
 
 
 def generate_launch_description():
+    
+    save_map_cmd = ExecuteProcess(
+        cmd=[
+            'ros2', 'run', 'nav2_map_server', 'map_saver_cli',
+            '-f', '/home/student/ros2_ws/src/acs6121_team08_2025/maps/explore_map'
+        ],
+        output='screen'
+    )
+
+    save_on_shutdown = RegisterEventHandler(
+        OnShutdown(on_shutdown=[save_map_cmd])
+    )
+
     return LaunchDescription([
 
         # ## START SIMULATION WORLD
@@ -64,6 +79,7 @@ def generate_launch_description():
             ),
             launch_arguments={
                 'slam': 'True',
+                "use_sim_time":"True",          # ← tell Nav2 to use *wall‑clock* time
                 'params_file': '/home/student/ros2_ws/src/acs6121_team08_2025/scripts/waffle.yaml'
             }.items()
         ),
@@ -140,7 +156,8 @@ def generate_launch_description():
                     output='screen'
                 )
             ]
-        )
+        ),
+        save_on_shutdown            # <‑‑ last
 
         
     
